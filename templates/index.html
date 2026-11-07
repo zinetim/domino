@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Domino 101</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🁣</text></svg>">
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+:root{--gold:#f5c451;--ink:#10201a;--glass:rgba(255,255,255,.08);--u:34px}
+*{box-sizing:border-box;margin:0}
+html,body{height:100%}
+body{font-family:'Segoe UI',system-ui,sans-serif;color:#f4f1e8;
+ background:radial-gradient(ellipse at 50% 30%,#1f7a55 0,#0f4a34 55%,#082a1e 100%);
+ overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+body:before{content:"";position:fixed;inset:0;opacity:.07;pointer-events:none;
+ background:repeating-linear-gradient(45deg,#fff 0 1px,transparent 1px 6px)}
+.screen{display:none;min-height:100%;padding:16px;max-width:980px;margin:auto;position:relative}
+.screen.on{display:flex;flex-direction:column}
+.card{background:var(--glass);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.15);
+ border-radius:22px;padding:24px;box-shadow:0 20px 50px rgba(0,0,0,.35)}
+h1{font-size:44px;letter-spacing:2px;text-align:center;
+ background:linear-gradient(#ffe9a8,var(--gold));-webkit-background-clip:text;color:transparent}
+.sub{text-align:center;opacity:.75;margin:4px 0 20px}
+button,input{font:inherit}
+.btn{border:0;border-radius:14px;padding:12px 20px;font-weight:700;cursor:pointer;color:var(--ink);
+ background:linear-gradient(#ffe08a,var(--gold));box-shadow:0 4px 0 #a97c14,0 8px 16px rgba(0,0,0,.3);
+ transition:transform .08s}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #a97c14}
+.btn.ghost{background:var(--glass);color:#fff;box-shadow:none;border:1px solid rgba(255,255,255,.25)}
+.btn:disabled{opacity:.4;pointer-events:none}
+input{width:100%;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.25);
+ background:rgba(0,0,0,.25);color:#fff;outline:0;margin-bottom:10px}
+input:focus{border-color:var(--gold)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center}
+.sep{margin:18px 0;text-align:center;opacity:.6;font-size:13px}
+#login .card,#lobby .card,#wait .card{margin:auto;width:100%;max-width:440px}
+.who{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.av{width:40px;height:40px;border-radius:50%;background:#2c6b4f center/cover;display:grid;place-items:center;
+ font-weight:800;border:2px solid var(--gold);flex:none}
+.rules{font-size:13px;opacity:.8;line-height:1.6;margin-top:14px}
+.code{font-size:54px;font-weight:900;letter-spacing:10px;text-align:center;color:var(--gold)}
+.plist{display:flex;flex-direction:column;gap:8px;margin:16px 0}
+.plist .p{display:flex;gap:10px;align-items:center;background:rgba(0,0,0,.2);padding:8px 12px;border-radius:12px}
+/* oyun */
+#game{gap:10px;padding-bottom:max(16px,env(safe-area-inset-bottom))}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.chip{background:var(--glass);border:1px solid rgba(255,255,255,.15);border-radius:999px;padding:6px 14px;font-size:13px}
+.score{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.sc{min-width:130px;background:rgba(0,0,0,.25);border-radius:14px;padding:8px 12px;border:2px solid transparent}
+.sc.me{border-color:var(--gold)}
+.sc b{font-size:22px;color:var(--gold)}
+.bar2{height:5px;border-radius:5px;background:rgba(255,255,255,.15);margin-top:4px;overflow:hidden}
+.bar2 i{display:block;height:100%;background:var(--gold);transition:width .6s}
+.opps{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.opp{display:flex;align-items:center;gap:10px;background:var(--glass);padding:8px 14px;border-radius:16px;
+ border:2px solid transparent;transition:.3s}
+.opp.turn,.sc.turn{border-color:#7dffb2;box-shadow:0 0 22px rgba(125,255,178,.55);animation:pulse 1.4s infinite}
+@keyframes pulse{50%{box-shadow:0 0 6px rgba(125,255,178,.2)}}
+.backs{display:flex;gap:2px;max-width:150px;flex-wrap:wrap}
+.backs i{width:9px;height:18px;border-radius:2px;background:linear-gradient(#f8f3e3,#cfc6a8);border:1px solid #8a8466}
+.tag{font-size:11px;background:var(--gold);color:var(--ink);padding:1px 7px;border-radius:9px;font-weight:700}
+.boardwrap{flex:1;min-height:200px;border-radius:26px;padding:14px;display:flex;align-items:center;justify-content:center;
+ background:radial-gradient(ellipse,rgba(0,0,0,.05),rgba(0,0,0,.3));border:3px solid #5b3a1c;
+ box-shadow:inset 0 0 40px rgba(0,0,0,.45),0 0 0 6px #7a4d24}
+.board{display:flex;flex-wrap:wrap;gap:3px;align-items:center;justify-content:center;max-width:100%}
+.tile{display:inline-flex;background:linear-gradient(145deg,#fffdf4,#e4dcc0);border-radius:calc(var(--u)*.2);
+ box-shadow:0 3px 0 #a89f7c,0 6px 10px rgba(0,0,0,.4);color:#111;position:relative;flex:none}
+.tile.vert{flex-direction:column}
+.half{width:var(--u);height:var(--u);display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:calc(var(--u)*.15)}
+.half i{place-self:center;width:72%;height:72%;border-radius:50%}
+.half i.on{background:radial-gradient(circle at 35% 30%,#555,#000);box-shadow:inset 0 -1px 1px rgba(255,255,255,.3)}
+.bar{position:absolute;background:#b8ae88}
+.tile:not(.vert) .bar{left:50%;top:15%;bottom:15%;width:2px;transform:translateX(-1px)}
+.tile.vert .bar{top:50%;left:15%;right:15%;height:2px;transform:translateY(-1px)}
+.pop{animation:pop .45s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{from{transform:scale(.2) rotate(-25deg);opacity:0}}
+.status{text-align:center;min-height:26px;font-weight:600}
+.hand{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:6px 0 4px;--u:42px}
+.hand .tile{cursor:pointer;transition:transform .15s}
+.hand .tile.ok{transform:translateY(-12px);box-shadow:0 3px 0 #a89f7c,0 0 0 3px var(--gold),0 0 18px var(--gold)}
+.hand .tile.dim{filter:brightness(.6)}
+.hand .tile.sel{transform:translateY(-22px) scale(1.06)}
+.actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;min-height:50px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;place-items:center;z-index:9;padding:16px}
+.modal.on{display:grid}
+.modal .card{max-width:520px;width:100%;background:#12382a;max-height:90vh;overflow:auto;text-align:center}
+.mh{display:flex;align-items:center;gap:8px;justify-content:space-between;margin:8px 0;font-size:13px;text-align:left}
+.mh .tile{--u:18px}
+.toast{position:fixed;left:50%;top:16px;transform:translate(-50%,-80px);background:#b3261e;color:#fff;padding:10px 18px;
+ border-radius:12px;z-index:20;transition:.35s;font-weight:600}
+.toast.on{transform:translate(-50%,0)}
+.big{font-size:30px;font-weight:900;color:var(--gold);margin:6px 0}
+@media(min-width:720px){:root{--u:44px}.hand{--u:50px}}
+</style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+
+<section class="screen on" id="login"><div class="card">
+ <h1>DOMINO</h1><p class="sub">101 xala qədər · 2–4 oyunçu · real vaxt</p>
+ <div id="gbtn" class="row" style="min-height:44px"></div>
+ <div class="sep" id="gsep">— və ya —</div>
+ <input id="gname" maxlength="16" placeholder="Adınızı yazın (qonaq kimi)">
+ <button class="btn" style="width:100%" onclick="guest()">Qonaq kimi gir</button>
+ <p class="rules" id="lerr" style="color:#ffb4ab"></p>
+</div></section>
+
+<section class="screen" id="lobby"><div class="card">
+ <div class="who"><div class="av" id="lav"></div><div><b id="lname"></b><br><small style="opacity:.7">Hazırsınız</small></div>
+  <button class="btn ghost" style="margin-left:auto;padding:8px 12px" onclick="logout()">Çıx</button></div>
+ <p class="sub" style="margin:0 0 10px">Yeni otaq yarat</p>
+ <div class="row">
+  <button class="btn" onclick="create(2)">👥 2 nəfər</button>
+  <button class="btn" onclick="create(3)">👥 3 nəfər</button>
+  <button class="btn" onclick="create(4)">👥 4 nəfər</button>
+ </div>
+ <div class="sep">— və ya kodla qoşul —</div>
+ <div class="row" style="flex-wrap:nowrap"><input id="jcode" maxlength="4" placeholder="KOD" style="margin:0;text-transform:uppercase;text-align:center;letter-spacing:6px">
+  <button class="btn" onclick="join()">Qoşul</button></div>
+ <div class="rules">
+  <b>2 nəfər:</b> bazardan yalnız cüt daş, bazarda son 2 daş qalır.<br>
+  <b>3 nəfər:</b> tək-tək çəkilir, bazarda son 1 daş qalır.<br>
+  <b>4 nəfər:</b> bazar yoxdur, qarşı-qarşıya oturanlar cütdür (xallar birlikdə).<br>
+  Hər kəsdə 7 daş. Ən kiçik qoşa (1-1, 2-2…) ilə başlanır, sonra əli bitirən başlayır.
+ </div>
+</div></section>
+
+<section class="screen" id="wait"><div class="card">
+ <p class="sub" style="margin:0">Otaq kodu — dostlarınıza göndərin</p>
+ <div class="code" id="wcode"></div>
+ <div class="row"><button class="btn ghost" onclick="copyCode()">📋 Kodu kopyala</button></div>
+ <div class="plist" id="wlist"></div>
+ <p class="sub" id="wcount"></p>
+ <button class="btn ghost" style="width:100%" onclick="leave()">Otaqdan çıx</button>
+</div></section>
+
+<section class="screen" id="game">
+ <div class="top"><span class="chip" id="ginfo"></span>
+  <div class="row"><button class="chip" id="mute" onclick="toggleMute()" style="cursor:pointer;color:#fff">🔊</button>
+  <button class="chip" onclick="if(confirm('Oyundan çıxılsın?'))leave()" style="cursor:pointer;color:#fff">✕</button></div></div>
+ <div class="score" id="gscore"></div>
+ <div class="opps" id="gopps"></div>
+ <div class="boardwrap"><div class="board" id="gboard"></div></div>
+ <div class="status" id="gstatus"></div>
+ <div class="actions" id="gact"></div>
+ <div class="hand" id="ghand"></div>
+</section>
+
+<div class="modal" id="modal"><div class="card" id="mbody"></div></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const sock=io();
+let ME=null,S=null,sel=null,lastMid=0,lastTurnMine=false,muted=localStorage.mute==='1';
+let CLIENT_ID='';
+
+/* ---------- SƏS (WebAudio, fayl lazım deyil) ---------- */
+let AC;
+function ac(){AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();return AC}
+function tone(f,d,type='sine',v=.2,t0=0,f2){if(muted)return;const a=ac(),o=a.createOscillator(),g=a.createGain(),t=a.currentTime+t0;
+ o.type=type;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);
+ g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(a.destination);o.start(t);o.stop(t+d)}
+function noise(d,v=.15,t0=0){if(muted)return;const a=ac(),b=a.createBuffer(1,a.sampleRate*d,a.sampleRate),x=b.getChannelData(0);
+ for(let i=0;i<x.length;i++)x[i]=(Math.random()*2-1)*(1-i/x.length);const s=a.createBufferSource(),g=a.createGain();
+ s.buffer=b;g.gain.value=v;s.connect(g).connect(a.destination);s.start(a.currentTime+t0)}
+const SND={
+ place(){tone(220,.12,'triangle',.4,0,90);noise(.05,.3)},
+ draw(){[0,.07].forEach(t=>{noise(.04,.25,t);tone(900,.05,'square',.05,t)})},
+ pass(){tone(200,.25,'sawtooth',.12,0,120)},
+ turn(){tone(660,.12,'sine',.18);tone(990,.18,'sine',.15,.1)},
+ deal(){for(let i=0;i<7;i++){noise(.05,.2,i*.07)}},
+ err(){tone(140,.2,'square',.12)},
+ win(){[523,659,784,1046,1318].forEach((f,i)=>tone(f,.35,'triangle',.25,i*.12))},
+ lose(){[392,330,262].forEach((f,i)=>tone(f,.4,'sawtooth',.1,i*.18))}
+};
+function toggleMute(){muted=!muted;localStorage.mute=muted?'1':'0';$('mute').textContent=muted?'🔇':'🔊'}
+$('mute').textContent=muted?'🔇':'🔊';
+
+/* ---------- GİRİŞ ---------- */
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id))}
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2600)}
+function guest(){const n=$('gname').value.trim();if(!n)return $('lerr').textContent='Ad yazın';
+ localStorage.gname=n;localStorage.gid=localStorage.gid||Math.random().toString(36).slice(2,12);ac();
+ sock.emit('auth',{name:n,gid:localStorage.gid})}
+function logout(){localStorage.removeItem('cred');localStorage.removeItem('gname');location.reload()}
+function onGoogle(r){localStorage.cred=r.credential;ac();sock.emit('auth',{credential:r.credential})}
+fetch('/config').then(r=>r.json()).then(c=>{CLIENT_ID=c.google;
+ if(!CLIENT_ID){$('gsep').style.display='none';return}
+ const init=()=>{if(!window.google||!google.accounts){return setTimeout(init,300)}
+  google.accounts.id.initialize({client_id:CLIENT_ID,callback:onGoogle});
+  google.accounts.id.renderButton($('gbtn'),{theme:'filled_black',size:'large',shape:'pill',text:'signin_with',locale:'az'})};init()});
+$('gname').value=localStorage.gname||'';
+sock.on('connect',()=>{if(localStorage.cred)sock.emit('auth',{credential:localStorage.cred});
+ else if(localStorage.gname)sock.emit('auth',{name:localStorage.gname,gid:localStorage.gid})});
+sock.on('autherr',m=>{localStorage.removeItem('cred');$('lerr').textContent=m});
+sock.on('authed',u=>{ME=u;avatar($('lav'),u);$('lname').textContent=u.name;if(!S)show('lobby')});
+sock.on('err',m=>{toast(m);SND.err()});
+sock.on('left',()=>{S=null;show('lobby')});
+sock.on('closed',m=>{S=null;$('modal').classList.remove('on');toast(m);show('lobby')});
+
+function avatar(el,p){el.textContent=p.pic?'':(p.name||'?')[0].toUpperCase();el.style.backgroundImage=p.pic?`url(${p.pic})`:''}
+function create(n){sock.emit('create',{n})}
+function join(){sock.emit('join',{code:$('jcode').value})}
+function leave(){sock.emit('leave')}
+function copyCode(){navigator.clipboard?.writeText(S.code);toast('Kod kopyalandı')}
+
+/* ---------- DAŞ ÇƏKİLİŞİ ---------- */
+const PIPS={0:[],1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
+const half=n=>`<div class="half">${[...Array(9)].map((_,i)=>`<i class="${PIPS[n].includes(i)?'on':''}"></i>`).join('')}</div>`;
+const tile=(a,b,cls='')=>`<div class="tile ${cls}" data-a="${a}" data-b="${b}">${half(a)}<span class="bar"></span>${half(b)}</div>`;
+
+/* ---------- OYUN ---------- */
+sock.on('state',s=>{const prev=S;S=s;
+ if(!s.game){show('wait');renderWait();return}
+ show('game');const g=s.game;
+ if(!prev||!prev.game||g.round!==prev.game.round)sel=null;
+ if(g.msg&&g.msg.id!==lastMid){lastMid=g.msg.id;const k=g.msg.kind;
+  if(k==='play')SND.place();else if(k==='draw')SND.draw();else if(k==='pass')SND.pass();
+  else if(k==='start')SND.deal();else if(k==='end'){const mine=g.n===4?g.msg.seat%2===s.seat%2:g.msg.seat===s.seat;
+   setTimeout(()=>mine?SND.win():SND.lose(),250)}}
+ const mine=g.turn===s.seat&&!g.result;
+ if(mine&&!lastTurnMine)setTimeout(SND.turn,200);lastTurnMine=mine;
+ renderGame()});
+
+function renderWait(){$('wcode').textContent=S.code;
+ $('wlist').innerHTML=S.players.map(p=>`<div class="p"><div class="av" id="" style="${p.pic?`background-image:url(${p.pic})`:''}">${p.pic?'':p.name[0].toUpperCase()}</div>${p.name}</div>`).join('');
+ $('wcount').textContent=`Gözlənilir… ${S.players.length}/${S.n}`}
+
+const nm=i=>S.players[i].name;
+function renderGame(){const g=S.game,me=S.seat;
+ $('ginfo').textContent=`Əl ${g.round} · Bazar: ${g.n===4?'yoxdur':g.market+' daş'} · Otaq ${S.code}`;
+ // xallar
+ const teams=g.n===4;
+ $('gscore').innerHTML=g.score.map((sc,i)=>{
+  const label=teams?`${nm(i)} + ${nm(i+2)}`:nm(i);const isMe=teams?i===me%2:i===me;
+  const turn=!g.result&&(teams?g.turn%2===i:g.turn===i);
+  return `<div class="sc ${isMe?'me':''} ${turn?'turn':''}"><small>${label}${isMe?' (siz)':''}</small><br><b>${sc}</b><small> / ${g.win}</small>
+  <div class="bar2"><i style="width:${Math.min(100,sc/g.win*100)}%"></i></div></div>`}).join('');
+ // rəqiblər
+ $('gopps').innerHTML=S.players.map((p,i)=>i===me?'':`<div class="opp ${g.turn===i&&!g.result?'turn':''}">
+  <div class="av" style="${p.pic?`background-image:url(${p.pic})`:''}">${p.pic?'':p.name[0].toUpperCase()}</div>
+  <div><b>${p.name}</b> ${teams&&i%2===me%2?'<span class="tag">tərəfdaş</span>':''}<br><div class="backs">${'<i></i>'.repeat(g.counts[i])}</div></div></div>`).join('');
+ // stol
+ const bd=$('gboard'),old=bd.children.length;
+ bd.innerHTML=g.board.map(([a,b])=>tile(a,b,a===b?'vert':'')).join('')||'<span style="opacity:.5;font-size:18px">Stol boşdur</span>';
+ if(g.board.length>old||g.board.length===1){const idx=g.msg&&g.msg.kind==='play'&&g.ends&&g.board.length>1?
+   (g.board[0][0]===g.ends[0]&&bd.children.length?0:0):0;}
+ if(g.msg&&g.msg.kind==='play'&&g.board.length){const k=g.msg.tile;[...bd.children].forEach(c=>{if(+c.dataset.a+ +c.dataset.b===k[0]+k[1]&&[+c.dataset.a,+c.dataset.b].sort().join()===k.join())c.classList.add('pop')})}
+ // vəziyyət
+ const mine=g.turn===me&&!g.result;
+ let st=g.result?'Əl bitdi':mine?'🟢 Sizin növbəniz':`⏳ ${nm(g.turn)} düşünür…`;
+ if(mine&&!g.board.length&&g.must)st=`🟢 ${g.must[0]}-${g.must[1]} daşı ilə başlayın`;
+ if(mine&&!g.board.length&&!g.must)st='🟢 İstədiyiniz daşla başlayın';
+ const m=g.msg;if(m&&!g.result){if(m.kind==='pass')st=`${nm(m.seat)} pas keçdi · `+st;
+  if(m.kind==='draw'&&m.seat!==me)st=`${nm(m.seat)} bazara getdi · `+st}
+ $('gstatus').textContent=st;
+ // əməllər
+ let act='';
+ if(sel&&mine){const [L,R]=g.ends;act=`<button class="btn" onclick="put('L')">◀ Sol (${L})</button><button class="btn" onclick="put('R')">Sağ (${R}) ▶</button><button class="btn ghost" onclick="sel=null;renderGame()">Ləğv</button>`}
+ else if(g.n<4&&g.board.length)act=`<button class="btn" ${g.can_draw?'':'disabled'} onclick="sock.emit('draw')">🛒 Bazar (${g.market}${g.n===2?' · cüt':''})</button>`;
+ $('gact').innerHTML=act;
+ // əl
+ $('ghand').innerHTML=g.hand.map(([a,b])=>{const ok=g.playable.some(t=>t[0]===a&&t[1]===b);
+  const s=sel&&sel[0]===a&&sel[1]===b;
+  return tile(a,b,`vert ${ok?'ok':mine?'dim':''} ${s?'sel':''}`)}).join('');
+ document.querySelectorAll('#ghand .tile').forEach(el=>el.onclick=()=>clickTile(+el.dataset.a,+el.dataset.b));
+ // nəticə
+ if(g.result)showResult(g);else $('modal').classList.remove('on');
+}
+
+function clickTile(a,b){const g=S.game;if(g.turn!==S.seat||g.result)return;ac();
+ if(!g.playable.some(t=>t[0]===a&&t[1]===b)){SND.err();return toast('Bu daşı qoymaq olmur')}
+ if(!g.board.length)return sock.emit('play',{tile:[a,b],side:'R'});
+ const [L,R]=g.ends,cl=a===L||b===L,cr=a===R||b===R;
+ if(cl&&cr&&L!==R){sel=[a,b];renderGame()}else sock.emit('play',{tile:[a,b],side:cr?'R':'L'})}
+function put(side){const t=sel;sel=null;sock.emit('play',{tile:t,side})}
+
+function showResult(g){const r=g.result,teams=g.n===4,me=S.seat;
+ const win=teams?r.winner%2===me%2:r.winner===me;
+ let h=`<div class="big">${g.over?(win?'🏆 QALİBSİNİZ!':'Oyun bitdi'):win?'🎉 Əli qazandınız':'Əl bitdi'}</div>
+ <p>${r.blocked?'Oyun bağlandı (balıq). ':''}<b>${nm(r.winner)}</b>${teams?' komandası':''} <b style="color:var(--gold)">+${r.points}</b> xal qazandı</p><div style="margin:12px 0">`;
+ h+=r.hands.map((hd,i)=>`<div class="mh"><span>${nm(i)}</span><span class="row" style="gap:4px;justify-content:flex-end">${hd.length?hd.map(([a,b])=>tile(a,b,'vert')).join(''):'<small>daşı bitdi ✓</small>'}</span></div>`).join('')+'</div>';
+ h+='<div class="score">'+g.score.map((s,i)=>`<div class="sc"><small>${teams?`${nm(i)} + ${nm(i+2)}`:nm(i)}</small><br><b>${s}</b></div>`).join('')+'</div><br>';
+ if(g.over){let best=g.score.indexOf(Math.max(...g.score));
+  h+=`<p style="margin-bottom:12px">Qalib: <b>${teams?nm(best)+' + '+nm(best+2):nm(best)}</b></p><div class="row"><button class="btn" onclick="sock.emit('rematch')">🔁 Yenidən</button><button class="btn ghost" onclick="leave()">Çıx</button></div>`}
+ else h+=`<button class="btn" onclick="sock.emit('next')">Növbəti əl ▶</button>`;
+ $('mbody').innerHTML=h;$('modal').classList.add('on')}
+</script>
+</body>
+</html>
