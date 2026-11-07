@@ -105,6 +105,8 @@ input:focus{border-color:var(--gold)}
  font-size:calc(var(--u)*.7);animation:blink 1s infinite alternate}
 @keyframes blink{to{transform:scale(1.15)}}
 .board{align-items:stretch}
+.cell{display:flex;align-items:center;justify-content:center;transform:scale(.96)}
+.cell .plus{margin:0}
 </style>
 </head>
 <body>
@@ -281,25 +283,29 @@ function renderGame(){const g=S.game,me=S.seat;
 
 function renderBoard(g){
  const bd=$('gboard');
- if(!g.board.length){bd.style.width='';bd.innerHTML='<span style="opacity:.5;font-size:18px">Stol boşdur</span>';return}
+ if(!g.board.length){bd.style.cssText='';bd.innerHTML='<span style="opacity:.5;font-size:18px">Stol boşdur</span>';return}
  const W=Math.max(240,bd.parentElement.clientWidth-40);
- const cap=W<480?12:18;
- const u=Math.max(18,Math.min(44,Math.floor(W/cap)));
- bd.style.setProperty('--u',u+'px');bd.style.width=(cap*u)+'px';bd.style.alignSelf='center';
+ const target=W<480?26:40;
+ const cap=Math.max(8,Math.floor(W/target));
+ const u=Math.min(44,Math.floor(W/cap));
+ bd.style.cssText=`--u:${u}px;display:grid;grid-template-columns:repeat(${cap},${u}px);grid-auto-rows:${u}px;gap:0;width:${cap*u}px;margin:auto`;
  const mine=g.turn===S.seat&&!g.result,show=sel&&mine;
- const items=[];
- if(show)items.push({p:'L'});
- g.board.forEach(([a,b])=>items.push({a,b}));
- if(show)items.push({p:'R'});
- const rows=[];let cur=[],w=0;
- items.forEach(it=>{const iw=it.p?1:(it.a===it.b?1:2);
-  if(w+iw>cap&&cur.length){rows.push(cur);cur=[];w=0}cur.push(it);w+=iw});
- if(cur.length)rows.push(cur);
- bd.innerHTML=rows.map((r,ri)=>{const odd=ri%2;const list=odd?r.slice().reverse():r;
-  return `<div class="brow ${odd?'rev':''}">${list.map(it=>{
-   if(it.p)return `<div class="slot p"><b class="plus" onclick="put('${it.p}')">+</b></div>`;
-   const [a,b]=odd?[it.b,it.a]:[it.a,it.b];
-   return `<div class="slot ${a===b?'d':'w'}">${tile(a,b,a===b?'vert':'')}</div>`}).join('')}</div>`}).join('');
+ const cell=(c,rr,w,h,html)=>`<div class="cell" style="grid-column:${c+1}/span ${w};grid-row:${rr}/span ${h}">${html}</div>`;
+ const plus=k=>`<b class="plus" onclick="put('${k}')">+</b>`;
+ let out='',r=1,dir=1,x=1;
+ if(show)out+=cell(0,1,1,1,plus('L'));
+ g.board.forEach(([a,b])=>{
+  const w=a===b?1:2;
+  if(dir>0){
+   if(x+w<=cap-1){out+=cell(x,r,w,1,tile(a,b,a===b?'vert':''));x+=w}
+   else{out+=cell(x,r,1,2,tile(a,b,'vert'));r++;dir=-1}
+  }else{
+   if(x-w>=1){x-=w;out+=cell(x,r,w,1,tile(b,a,a===b?'vert':''))}
+   else{out+=cell(x-1,r,1,2,tile(a,b,'vert'));r++;dir=1}
+  }
+ });
+ if(show)out+=cell(dir>0?x:x-1,r,1,1,plus('R'));
+ bd.innerHTML=out;
  if(g.msg&&g.msg.kind==='play'){const k=g.msg.tile;
   bd.querySelectorAll('.tile').forEach(c=>{if([+c.dataset.a,+c.dataset.b].sort().join()===k.join())c.classList.add('pop')})}
 }
