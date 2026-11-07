@@ -183,6 +183,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;gap:4px}
 .rm .nm small{opacity:.75;display:block}
 .rm .btn{padding:8px 14px;font-size:14px;flex:none}
 .live{display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff5252;margin-right:5px;animation:blink 1s infinite alternate}
+<<<<<<< HEAD
 
 /* ===== SADƏ DİZAYN ===== */
 body{background:#0d3b2c}
@@ -228,6 +229,13 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;gap:4px}
 .btn.wa{background:linear-gradient(#6ff0a0,#25d366);box-shadow:0 4px 0 #148a43,0 8px 16px rgba(0,0,0,.3)}
 .btn.tg{background:linear-gradient(#7fd0ff,#229ed9);box-shadow:0 4px 0 #136a94,0 8px 16px rgba(0,0,0,.3)}
 #wshare .btn{padding:10px 14px;font-size:14px}
+=======
+>>>>>>> parent of e1712eb (Simple high-contrast design, sticky hand dock)
+
+/* ===== KOMPAKT SMAYLIK ===== */
+.reacts{gap:6px;padding:2px 0 0}
+.rbtn{width:36px;height:36px;padding:3px}
+#gvoice .btn{padding:7px 12px;font-size:14px}
 </style>
 </head>
 <body>
@@ -645,6 +653,7 @@ sock.on('rooms',list=>{
   return `<div class="rm"><div class="nm"><b>${r.names.map(n=>n.replace(/</g,'&lt;')).join(', ')}</b>
    <small>${r.code} · ${r.n} nəfər · ${st}${sc}${r.watchers?' · '+r.watchers+' izləyici':''}</small></div>${btn}</div>`}).join('')
   :'<p class="rules" style="text-align:center;margin:0 0 10px">Hazırda aktiv otaq yoxdur</p>'});
+<<<<<<< HEAD
 
 /* ===== SADƏ DİZAYN: bölmələrin yeri ===== */
 (function(){
@@ -696,6 +705,8 @@ showResult=function(g){if(!S.spec)return _sr(g);const r=g.result;
  <p><b>${nm(r.winner)}</b>${g.n===4?' komandası':''} <b style="color:var(--gold)">+${r.points}</b> xal qazandı</p>
  <div class="score" style="margin:12px 0">${g.score.map((x,i)=>`<div class="sc"><small>${g.n===4?nm(i)+' + '+nm(i+2):nm(i)}</small><br><b>${x}</b></div>`).join('')}</div>
  <button class="btn ghost" onclick="leave()">Çıx</button>`;$('modal').classList.add('on')};
+=======
+>>>>>>> parent of e1712eb (Simple high-contrast design, sticky hand dock)
 </script>
 </body>
 </html>
