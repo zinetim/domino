@@ -91,6 +91,8 @@ input:focus{border-color:var(--gold)}
 .toast.on{transform:translate(-50%,0)}
 .big{font-size:30px;font-weight:900;color:var(--gold);margin:6px 0}
 @media(min-width:720px){:root{--u:44px}.hand{--u:50px}}
+.board{flex-direction:column;flex-wrap:nowrap;gap:6px;width:100%;align-items:stretch}
+.brow{display:flex;gap:4px;align-items:center;min-height:calc(var(--u)*2)}
 </style>
 </head>
 <body>
@@ -241,11 +243,7 @@ function renderGame(){const g=S.game,me=S.seat;
   <div class="av" style="${p.pic?`background-image:url(${p.pic})`:''}">${p.pic?'':p.name[0].toUpperCase()}</div>
   <div><b>${p.name}</b> ${teams&&i%2===me%2?'<span class="tag">tərəfdaş</span>':''}<br><div class="backs">${'<i></i>'.repeat(g.counts[i])}</div></div></div>`).join('');
  // stol
- const bd=$('gboard'),old=bd.children.length;
- bd.innerHTML=g.board.map(([a,b])=>tile(a,b,a===b?'vert':'')).join('')||'<span style="opacity:.5;font-size:18px">Stol boşdur</span>';
- if(g.board.length>old||g.board.length===1){const idx=g.msg&&g.msg.kind==='play'&&g.ends&&g.board.length>1?
-   (g.board[0][0]===g.ends[0]&&bd.children.length?0:0):0;}
- if(g.msg&&g.msg.kind==='play'&&g.board.length){const k=g.msg.tile;[...bd.children].forEach(c=>{if(+c.dataset.a+ +c.dataset.b===k[0]+k[1]&&[+c.dataset.a,+c.dataset.b].sort().join()===k.join())c.classList.add('pop')})}
+ renderBoard(g);
  // vəziyyət
  const mine=g.turn===me&&!g.result;
  let st=g.result?'Əl bitdi':mine?'🟢 Sizin növbəniz':`⏳ ${nm(g.turn)} düşünür…`;
@@ -267,6 +265,25 @@ function renderGame(){const g=S.game,me=S.seat;
  // nəticə
  if(g.result)showResult(g);else $('modal').classList.remove('on');
 }
+
+function renderBoard(g){
+ const bd=$('gboard');
+ if(!g.board.length){bd.innerHTML='<span style="opacity:.5;font-size:18px">Stol boşdur</span>';return}
+ const W=Math.max(240,bd.parentElement.clientWidth-32);
+ const cols=W<480?6:9;
+ const u=Math.max(22,Math.min(46,Math.floor((W-cols*4)/(cols*2))));
+ bd.style.setProperty('--u',u+'px');
+ const gap=4,rows=[];let cur=[],w=0;
+ g.board.forEach(([a,b])=>{const iw=(a===b?u:2*u)+gap;
+  if(w+iw>W&&cur.length){rows.push(cur);cur=[];w=0}cur.push([a,b]);w+=iw});
+ if(cur.length)rows.push(cur);
+ bd.innerHTML=rows.map((r,i)=>{
+  const items=i%2?r.slice().reverse().map(([a,b])=>[b,a]):r;
+  return `<div class="brow" style="justify-content:${i%2?'flex-end':'flex-start'}">${items.map(([a,b])=>tile(a,b,a===b?'vert':'')).join('')}</div>`}).join('');
+ if(g.msg&&g.msg.kind==='play'){const k=g.msg.tile;
+  bd.querySelectorAll('.tile').forEach(c=>{if([+c.dataset.a,+c.dataset.b].sort().join()===k.join())c.classList.add('pop')})}
+}
+window.addEventListener('resize',()=>{if(S&&S.game)renderBoard(S.game)});
 
 function clickTile(a,b){const g=S.game;if(g.turn!==S.seat||g.result)return;ac();
  if(!g.playable.some(t=>t[0]===a&&t[1]===b)){SND.err();return toast('Bu daşı qoymaq olmur')}
