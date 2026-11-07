@@ -1,6 +1,7 @@
 import os
 import random
 import time
+import time
 import secrets
 import string
 
@@ -16,6 +17,7 @@ CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
 rooms = {}       # kod -> otaq
 users = {}       # sid -> istifadəçi
 user_room = {}   # uid -> kod
+last_react = {}
 last_react = {}
 
 
@@ -38,6 +40,7 @@ def payload(r, i):
     g = r["game"]
     return {"code": r["code"], "n": r["n"], "seat": i,
             "players": [{"name": p["name"], "pic": p["pic"]} for p in r["players"]],
+            "voice": sorted(r.get("voice", [])),
             "voice": sorted(r.get("voice", [])),
             "game": g.view(i) if g else None}
 
@@ -188,6 +191,7 @@ def rematch(_=None):
 @sio.on("disconnect")
 def disc():
     last_react.pop(request.sid, None)
+    last_react.pop(request.sid, None)
     u = users.pop(request.sid, None)
     if not u:
         return
@@ -196,6 +200,49 @@ def disc():
         r["sids"][seat] = None
         r.get("voice", set()).discard(seat)
         push(r)
+        r.get("voice", set()).discard(seat)
+        push(r)
+
+
+@sio.on("react")
+def react(d):
+    u = me()
+    r, seat = my_room(u) if u else (None, None)
+    k = d.get("k")
+    if not r or not r["game"] or not isinstance(k, int) or not 0 <= k < 5:
+        return
+    now = time.time()
+    if now - last_react.get(request.sid, 0) < 1.2:
+        return
+    last_react[request.sid] = now
+    for sid in r["sids"]:
+        if sid:
+            sio.emit("react", {"seat": seat, "k": k}, to=sid)
+
+
+@sio.on("voice")
+def voice(d):
+    u = me()
+    r, seat = my_room(u) if u else (None, None)
+    if not r:
+        return
+    v = r.setdefault("voice", set())
+    if d.get("on"):
+        others = sorted(v - {seat})
+        v.add(seat)
+        emit("voicepeers", others)
+    else:
+        v.discard(seat)
+    push(r)
+
+
+@sio.on("rtc")
+def rtc(d):
+    u = me()
+    r, seat = my_room(u) if u else (None, None)
+    to = d.get("to")
+    if r and isinstance(to, int) and 0 <= to < len(r["sids"]) and r["sids"][to]:
+        sio.emit("rtc", {"from": seat, "data": d.get("data")}, to=r["sids"][to])
 
 
 @sio.on("react")
