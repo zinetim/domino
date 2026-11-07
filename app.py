@@ -5,7 +5,7 @@ import time
 import secrets
 import string
 
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, request, send_from_directory
 from flask_socketio import SocketIO, emit
 
 from game import Game
@@ -24,7 +24,7 @@ last_react = {}
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    return send_from_directory("templates", "index.html")
 
 
 @app.route("/config")
