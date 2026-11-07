@@ -408,36 +408,49 @@ function renderGame(){const g=S.game,me=S.seat;
  if(g.result)showResult(g);else $('modal').classList.remove('on');
 }
 
+
+function layoutBoard(board,origin,cap,gd){
+ const P=1.5,dbl={},out=[];
+ const clash=(r,x)=>[r-1,r+1].some(q=>(dbl[q]||[]).some(([a,b])=>x<b&&x+1>a));
+ const reg=(r,x)=>{(dbl[r]=dbl[r]||[]).push([x,x+1])};
+ function step(st,d,dry){
+  let v=d,w=d?1:2;
+  if(v&&clash(st.r,st.dir>0?st.f:st.f-1)){v=false;w=2}
+  if(st.dir>0?st.f+w+1<=cap:st.f-w-1>=0){
+   const x=st.dir>0?st.f:st.f-w,y=st.r*P;
+   if(v&&!dry)reg(st.r,x);
+   st.f+=st.dir*w;
+   return {x,y:v?y-1:y-.5,w:v?1:2,h:v?2:1,v,t:0,dir:st.dir,s:st.s}}
+  const x=st.dir>0?st.f:st.f-1,y=(st.r+st.s/2)*P,s=st.s,dir=st.dir;
+  st.r+=s;st.dir=-dir;
+  return {x,y:y-1,w:1,h:2,v:true,t:1,dir,s}}
+ const o=board[origin],ow=o[0]===o[1]?1:2,cx=Math.round((cap-ow)/2);
+ out.push({x:cx,y:ow===1?-1:-.5,w:ow,h:ow===1?2:1,v:ow===1,t:0,dir:1,s:1,i:origin,a:o[0],b:o[1]});
+ if(ow===1)reg(0,cx);
+ const R={f:cx+ow,dir:1,r:0,s:1},L={f:cx,dir:-1,r:0,s:-1};
+ for(let i=origin+1;i<board.length;i++){const t=board[i];out.push({...step(R,t[0]===t[1],false),i,a:t[0],b:t[1]})}
+ for(let i=origin-1;i>=0;i--){const t=board[i];out.push({...step(L,t[0]===t[1],false),i,a:t[1],b:t[0]})}
+ let gl=null,gr=null;
+ if(gd===true||gd===false){gr=step({...R},gd,true);if(gr.v&&!gr.t)reg(R.r,gr.x);gl=step({...L},gd,true)}
+ return {items:out,gl,gr}}
 function renderBoard(g){
  const bd=$('gboard');
  if(!g.board.length){bd.style.cssText='';bd.innerHTML='<span style="opacity:.5;font-size:18px">Stol boşdur</span>';return}
  const W=Math.max(240,bd.parentElement.clientWidth-40);
- const cap=Math.max(5,Math.round((W<400?8:W<560?10:W<900?14:16)/ZOOM));
+ const cap=Math.max(7,Math.round((W<400?8:W<560?10:W<900?14:16)/ZOOM));
  const u=Math.max(16,Math.min(Math.round(60*ZOOM),Math.floor(W/cap)));
  const mine=g.turn===S.seat&&!g.result,show=!!sel&&mine;
- let out='',maxB=0,dir=1,r=0,x=2,first=false;
- const cy=()=>r*2*u+u;
- const box=(c,top,w,h,html,cls,attr)=>{maxB=Math.max(maxB,top+h*u);
-  return `<div class="cell ${cls||''}" ${attr||''} style="left:${c*u}px;top:${top}px;width:${w*u}px;height:${h*u}px">${html}</div>`};
- const nextPos=(a,b)=>{
-  const dbl=a===b,w=(dbl&&!first)?1:2;let p;
-  if(dir>0){
-   if(x+w<=cap-1){p=w===1?{c:x,w:1,top:cy()-u,h:2,v:1}:{c:x,w:2,top:cy()-u/2,h:1,v:0,f:0};x+=w;first=false}
-   else{p={c:cap-1,w:1,top:cy()-u/2,h:2,v:1};r++;dir=-1;x=cap;first=true}
-  }else{
-   if(x-w>=1){x-=w;p=w===1?{c:x,w:1,top:cy()-u,h:2,v:1}:{c:x,w:2,top:cy()-u/2,h:1,v:0,f:1};first=false}
-   else{p={c:0,w:1,top:cy()-u/2,h:2,v:1};r++;dir=1;x=0;first=true}
-  }
-  return p};
+ const o=Math.min(g.origin||0,g.board.length-1);
+ const L=layoutBoard(g.board,o,cap,show?sel[0]===sel[1]:null);
+ const all=L.items.concat(L.gl?[L.gl]:[],L.gr?[L.gr]:[]);
+ const minY=Math.min(...all.map(p=>p.y)),maxY=Math.max(...all.map(p=>p.y+p.h)),pad=6;
+ const cell=(p,html,cls,attr)=>`<div class="cell ${cls||''}" ${attr||''} style="left:${p.x*u}px;top:${(p.y-minY)*u+pad}px;width:${p.w*u}px;height:${p.h*u}px">${html}</div>`;
  const plus='<b class="gplus">+</b>';
- if(show){const hw=sel[0]===sel[1]?1:2;
-  out+=box(2-hw,hw===1?cy()-u:cy()-u/2,hw,hw===1?2:1,plus,'ghost',`onclick="put('L')"`)}
- g.board.forEach(([a,b])=>{const p=nextPos(a,b);
-  const html=p.v?tile(a,b,'vert'):(p.f?tile(b,a):tile(a,b));
-  out+=box(p.c,p.top,p.w,p.h,html)});
- if(show){const p=nextPos(sel[0],sel[1]);
-  out+=box(p.c,p.top,p.w,p.h,plus,'ghost',`onclick="put('R')"`)}
- bd.style.cssText=`--u:${u}px;position:relative;display:block;flex:none;width:${cap*u}px;height:${maxB+6}px`;
+ let out=L.items.map(p=>{
+  const html=p.v?(p.t&&p.s<0?tile(p.b,p.a,'vert'):tile(p.a,p.b,'vert')):(p.dir>0?tile(p.a,p.b):tile(p.b,p.a));
+  return cell(p,html,'',`data-i="${p.i}"`)}).join('');
+ if(show){out+=cell(L.gl,plus,'ghost',`onclick="put('L')"`)+cell(L.gr,plus,'ghost',`onclick="put('R')"`)}
+ bd.style.cssText=`--u:${u}px;position:relative;display:block;flex:none;width:${cap*u}px;height:${(maxY-minY)*u+pad*2}px`;
  bd.innerHTML=out;
  if(g.msg&&g.msg.kind==='play'){const k=g.msg.tile;
   bd.querySelectorAll('.tile').forEach(c=>{if([+c.dataset.a,+c.dataset.b].sort().join()===k.join())c.classList.add('pop')})}
@@ -564,7 +577,7 @@ const _rb=renderBoard;
 renderBoard=function(g){_rb(g);
  const bd=$('gboard'),T=[...bd.querySelectorAll('.cell:not(.ghost) .tile')],ge=$('gends');
  if(ge)ge.innerHTML=g.ends?`Açıq uclar <span class="ec n${g.ends[0]}">${g.ends[0]}</span><span style="opacity:.5">—</span><span class="ec n${g.ends[1]}">${g.ends[1]}</span>`:'';
- if(T.length){T[0].classList.add('endt');T[T.length-1].classList.add('endt')}
+ {const f=bd.querySelector('.cell[data-i="0"] .tile'),l=bd.querySelector('.cell[data-i="'+(g.board.length-1)+'"] .tile');f&&f.classList.add('endt');l&&l.classList.add('endt')}
  if(g.msg&&g.msg.kind==='play'){const k=g.msg.tile.join();
   T.forEach(t=>{if([+t.dataset.a,+t.dataset.b].sort().join()===k)t.classList.add('lastp')})}
 };

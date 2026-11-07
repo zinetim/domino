@@ -32,6 +32,7 @@ class Game:
         self.hands = [sorted(tiles[i * 7:(i + 1) * 7]) for i in range(self.n)]
         self.market = tiles[self.n * 7:]
         self.board, self.passes, self.result, self.must = [], 0, None, None
+        self.nleft = 0
         self.round += 1
         if starter is None:      # ilk əl: ən kiçik qoşa ilə başlanır
             for d in ORDER:
@@ -93,6 +94,7 @@ class Game:
             if side == "L" and L in t:
                 placed = (a, b) if b == L else (b, a)
                 self.board.insert(0, placed)
+                self.nleft += 1
             elif side == "R" and R in t:
                 placed = (a, b) if a == R else (b, a)
                 self.board.append(placed)
@@ -134,7 +136,7 @@ class Game:
         mine = self.turn == seat and not self.result
         return {
             "n": self.n, "hand": self.hands[seat] if seat >= 0 else [], "counts": [len(h) for h in self.hands],
-            "board": self.board, "ends": self.ends(), "turn": self.turn,
+            "board": self.board, "origin": self.nleft, "ends": self.ends(), "turn": self.turn,
             "market": len(self.market), "score": self.score, "round": self.round,
             "can_draw": self.can_draw(seat), "playable": self.playable(seat) if mine else [],
             "must": self.must, "msg": self.msg, "result": self.result,
