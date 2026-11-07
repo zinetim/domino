@@ -386,10 +386,10 @@ function playSynth(k){
  else if(k===3){for(let i=0;i<70;i++)noise(.03+Math.random()*.05,.06+Math.random()*.12,Math.random()*1.9);tone(784,.3,'triangle',.08,.0)} // alqış
  else{for(let i=0;i<4;i++)noise(.03,.35,i*.2);for(let i=0;i<2;i++){tone(1400,.5,'sine',.22,.85+i*.18);tone(2100,.4,'sine',.08,.85+i*.18)}}} // tez ol: saat + zəng
 
-const RFILES=['laugh','sad','think','clap','hurry'];
+const RFILES=['laugh.wav','sad.wav','think.mp3','clap.wav','hurry.mp3'];
 function playReact(k){
  if(muted)return;
- const a=new Audio('/static/sounds/'+RFILES[k]+'.mp3');a.volume=.9;
+ const a=new Audio('/static/sounds/'+RFILES[k]);a.volume=.9;
  a.onerror=()=>playSynth(k);
  a.play().catch(()=>playSynth(k));
  setTimeout(()=>{a.pause()},4500)}
