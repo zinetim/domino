@@ -9,7 +9,7 @@ from flask_socketio import SocketIO, emit
 from game import Game
 
 app = Flask(__name__)
-sio = SocketIO(app, async_mode="threading", cors_allowed_origins="*")
+sio = SocketIO(app, async_mode="threading", cors_allowed_origins="*", ping_interval=20, ping_timeout=40)
 CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
 
 rooms = {}       # kod -> otaq

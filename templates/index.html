@@ -14,11 +14,9 @@ html,body{height:100%}
 body{font-family:'Segoe UI',system-ui,sans-serif;color:#f4f1e8;
  background:radial-gradient(ellipse at 50% 30%,#1f7a55 0,#0f4a34 55%,#082a1e 100%);
  overflow-x:hidden;-webkit-tap-highlight-color:transparent}
-body:before{content:"";position:fixed;inset:0;opacity:.07;pointer-events:none;
- background:repeating-linear-gradient(45deg,#fff 0 1px,transparent 1px 6px)}
 .screen{display:none;min-height:100%;padding:16px;max-width:980px;margin:auto;position:relative}
 .screen.on{display:flex;flex-direction:column}
-.card{background:var(--glass);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.15);
+.card{background:var(--glass);border:1px solid rgba(255,255,255,.15);
  border-radius:22px;padding:24px;box-shadow:0 20px 50px rgba(0,0,0,.35)}
 h1{font-size:44px;letter-spacing:2px;text-align:center;
  background:linear-gradient(#ffe9a8,var(--gold));-webkit-background-clip:text;color:transparent}
@@ -56,7 +54,7 @@ input:focus{border-color:var(--gold)}
 .opps{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
 .opp{display:flex;align-items:center;gap:10px;background:var(--glass);padding:8px 14px;border-radius:16px;
  border:2px solid transparent;transition:.3s}
-.opp.turn,.sc.turn{border-color:#7dffb2;box-shadow:0 0 22px rgba(125,255,178,.55);animation:pulse 1.4s infinite}
+.opp.turn,.sc.turn{border-color:#7dffb2;box-shadow:0 0 22px rgba(125,255,178,.55)}
 @keyframes pulse{50%{box-shadow:0 0 6px rgba(125,255,178,.2)}}
 .backs{display:flex;gap:2px;max-width:150px;flex-wrap:wrap}
 .backs i{width:9px;height:18px;border-radius:2px;background:linear-gradient(#f8f3e3,#cfc6a8);border:1px solid #8a8466}
@@ -152,7 +150,7 @@ input:focus{border-color:var(--gold)}
 
 <script>
 const $=id=>document.getElementById(id);
-const sock=io();
+const sock=io({transports:['websocket','polling']});
 let ME=null,S=null,sel=null,lastMid=0,lastTurnMine=false,muted=localStorage.mute==='1';
 let CLIENT_ID='';
 
