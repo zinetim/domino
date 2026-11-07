@@ -99,6 +99,12 @@ input:focus{border-color:var(--gold)}
  border-radius:50%;background:var(--gold);color:var(--ink);font-weight:900;font-size:calc(var(--u)*.7);line-height:1;
  display:grid;place-items:center;z-index:3;cursor:pointer;box-shadow:0 0 0 3px rgba(0,0,0,.35),0 0 14px var(--gold)}
 .plus.l{left:calc(var(--u)*-.425)}.plus.r{right:calc(var(--u)*-.425)}
+.slot{width:auto;flex:none;display:flex;justify-content:center;align-items:center}
+.slot.p,.slot.d{width:var(--u)}.slot.w{width:calc(var(--u)*2)}
+.plus{position:static;margin:0;left:auto;right:auto;top:auto;width:calc(var(--u)*.85);height:calc(var(--u)*.85);
+ font-size:calc(var(--u)*.7);animation:blink 1s infinite alternate}
+@keyframes blink{to{transform:scale(1.15)}}
+.board{align-items:stretch}
 </style>
 </head>
 <body>
@@ -275,23 +281,25 @@ function renderGame(){const g=S.game,me=S.seat;
 
 function renderBoard(g){
  const bd=$('gboard');
- if(!g.board.length){bd.innerHTML='<span style="opacity:.5;font-size:18px">Stol boşdur</span>';return}
+ if(!g.board.length){bd.style.width='';bd.innerHTML='<span style="opacity:.5;font-size:18px">Stol boşdur</span>';return}
  const W=Math.max(240,bd.parentElement.clientWidth-40);
- const per=W<480?6:9,gap=4;
- const u=Math.max(20,Math.min(44,Math.floor((W-(per-1)*gap)/(per*2))));
- bd.style.setProperty('--u',u+'px');
- const mine=g.turn===S.seat&&!g.result,show=sel&&mine,last=g.board.length-1,rows=[];
- for(let i=0;i<g.board.length;i+=per)rows.push(g.board.slice(i,i+per).map((t,j)=>({t,idx:i+j})));
- bd.innerHTML=rows.map((r,ri)=>{const odd=ri%2;
-  const items=odd?r.slice().reverse():r;
-  return `<div class="brow ${odd?'rev':''}">${items.map(({t,idx})=>{
-   let [a,b]=t;if(odd)[a,b]=[b,a];
-   let h=tile(a,b,a===b?'vert':'');
-   let bg='';
-   if(show){if(idx===0)bg+=`<b class="plus l" onclick="put('L')">+</b>`;
-    if(idx===last)bg+=`<b class="plus ${odd?'l':'r'}" onclick="put('R')">+</b>`}
-   h=h.replace(/<\/div>$/,bg+'</div>');
-   return `<div class="slot">${h}</div>`}).join('')}</div>`}).join('');
+ const cap=W<480?12:18;
+ const u=Math.max(18,Math.min(44,Math.floor(W/cap)));
+ bd.style.setProperty('--u',u+'px');bd.style.width=(cap*u)+'px';bd.style.alignSelf='center';
+ const mine=g.turn===S.seat&&!g.result,show=sel&&mine;
+ const items=[];
+ if(show)items.push({p:'L'});
+ g.board.forEach(([a,b])=>items.push({a,b}));
+ if(show)items.push({p:'R'});
+ const rows=[];let cur=[],w=0;
+ items.forEach(it=>{const iw=it.p?1:(it.a===it.b?1:2);
+  if(w+iw>cap&&cur.length){rows.push(cur);cur=[];w=0}cur.push(it);w+=iw});
+ if(cur.length)rows.push(cur);
+ bd.innerHTML=rows.map((r,ri)=>{const odd=ri%2;const list=odd?r.slice().reverse():r;
+  return `<div class="brow ${odd?'rev':''}">${list.map(it=>{
+   if(it.p)return `<div class="slot p"><b class="plus" onclick="put('${it.p}')">+</b></div>`;
+   const [a,b]=odd?[it.b,it.a]:[it.a,it.b];
+   return `<div class="slot ${a===b?'d':'w'}">${tile(a,b,a===b?'vert':'')}</div>`}).join('')}</div>`}).join('');
  if(g.msg&&g.msg.kind==='play'){const k=g.msg.tile;
   bd.querySelectorAll('.tile').forEach(c=>{if([+c.dataset.a,+c.dataset.b].sort().join()===k.join())c.classList.add('pop')})}
 }
