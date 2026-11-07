@@ -224,6 +224,10 @@ html .opp.speak{box-shadow:0 0 0 2px #00e676}
 #tools .reacts{padding:0}.rbtn{width:40px;height:40px;background:#0a2a1f}
 #tools #gvoice .btn{padding:8px 12px;font-size:14px}
 html .endsinfo{font-size:15px;min-height:30px}
+a.btn{text-decoration:none;display:inline-flex;align-items:center;gap:4px}
+.btn.wa{background:linear-gradient(#6ff0a0,#25d366);box-shadow:0 4px 0 #148a43,0 8px 16px rgba(0,0,0,.3)}
+.btn.tg{background:linear-gradient(#7fd0ff,#229ed9);box-shadow:0 4px 0 #136a94,0 8px 16px rgba(0,0,0,.3)}
+#wshare .btn{padding:10px 14px;font-size:14px}
 </style>
 </head>
 <body>
@@ -265,6 +269,7 @@ html .endsinfo{font-size:15px;min-height:30px}
  <div class="code" id="wcode"></div>
  <div class="row"><button class="btn ghost" onclick="copyCode()"><svg class="ic" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h8"/></svg> Kodu kopyala</button></div>
  <div class="row" id="wshare" style="margin-top:14px"></div>
+ <div class="row" id="wshare" style="margin-top:14px"></div>
  <div class="plist" id="wlist"></div>
  <p class="sub" id="wcount"></p>
  <button class="btn ghost" style="width:100%" onclick="leave()">Otaqdan çıx</button>
@@ -273,6 +278,7 @@ html .endsinfo{font-size:15px;min-height:30px}
 <section class="screen" id="game">
  <div class="top"><span class="chip" id="ginfo"></span>
   <div class="row"><button class="chip" id="zoomb" onclick="cycleZoom()" title="Daşları böyüt" style="cursor:pointer;color:#fff;font-weight:800">Aa</button>
+  <button class="chip" id="gshare" onclick="shareLink()" title="Linki paylaş" style="cursor:pointer;color:#fff"></button>
   <button class="chip" id="gshare" onclick="shareLink()" title="Linki paylaş" style="cursor:pointer;color:#fff"></button>
   <button class="chip" id="mute" onclick="toggleMute()" style="cursor:pointer;color:#fff">🔊</button>
   <button class="chip" onclick="if(confirm('Oyundan çıxılsın?'))leave()" style="cursor:pointer;color:#fff"><svg class="ic" viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></svg></button></div></div>
@@ -359,7 +365,7 @@ sock.on('state',s=>{const prev=S;S=s;VS=new Set(s.voice||[]);syncPeers();
  if(g.msg&&g.msg.id!==lastMid){lastMid=g.msg.id;const k=g.msg.kind;
   if(k==='play')SND.place();else if(k==='draw')SND.draw();else if(k==='pass')SND.pass();
   else if(k==='start')SND.deal();else if(k==='end'){const mine=g.n===4?g.msg.seat%2===s.seat%2:g.msg.seat===s.seat;
-   if(!s.spec)setTimeout(()=>mine?SND.win():SND.lose(),250)}}
+   if(!s.spec)if(!s.spec)setTimeout(()=>mine?SND.win():SND.lose(),250)}}
  const mine=g.turn===s.seat&&!g.result;
  if(mine&&!lastTurnMine)setTimeout(SND.turn,200);lastTurnMine=mine;
  renderGame()});
@@ -653,6 +659,43 @@ sock.on('rooms',list=>{
  renderGame=function(){_r();const g=S.game;
   $('gstatus').classList.toggle('mine',!!g&&!S.spec&&g.turn===S.seat&&!g.result)};
 })();
+
+/* ---------- LİNK, PAYLAŞMA, İZLƏMƏ ---------- */
+ICON.share='<svg class="ic" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.6l6.8-4M8.6 13.4l6.8 4"/></svg>';
+ICON.eye='<svg class="ic" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+const QP=new URLSearchParams(location.search);
+let PENDING=QP.get('watch')?{w:1,c:QP.get('watch')}:QP.get('room')?{c:QP.get('room')}:null;
+if(PENDING){$('lerr').style.color='#ffe08a';$('lerr').textContent=PENDING.w?'Oyunu izləmək üçün adınızı yazıb daxil olun':'Otağa qoşulmaq üçün adınızı yazıb daxil olun'}
+sock.on('authed',()=>{if(!PENDING)return;const p=PENDING;PENDING=null;history.replaceState(null,'',location.pathname);
+ sock.emit(p.w?'spectate':'enter',{code:p.c})});
+const LINK=()=>location.origin+'/?room='+S.code, WLINK=()=>location.origin+'/?watch='+S.code;
+function copyText(t,msg){const ok=()=>toast(msg||'Kopyalandı');
+ if(navigator.clipboard)navigator.clipboard.writeText(t).then(ok,()=>{});
+ else{const i=document.createElement('input');i.value=t;document.body.appendChild(i);i.select();document.execCommand('copy');i.remove();ok()}}
+function shareLink(){const d={title:'Domino 101',text:'Dominoya gəl! Otaq kodu: '+S.code,url:LINK()};
+ if(navigator.share)navigator.share(d).catch(()=>{});else copyText(LINK(),'Link kopyalandı')}
+function shareHtml(){const t=encodeURIComponent('Dominoya gəl! Kod: '+S.code+' ');
+ return `<button class="btn" onclick="shareLink()">${ICON.share} Paylaş</button>
+ <a class="btn wa" href="https://wa.me/?text=${t}${encodeURIComponent(LINK())}" target="_blank" rel="noopener">WhatsApp</a>
+ <a class="btn tg" href="https://t.me/share/url?url=${encodeURIComponent(LINK())}&text=${t}" target="_blank" rel="noopener">Telegram</a>
+ <button class="btn ghost" onclick="copyText(LINK(),'Dəvət linki kopyalandı')">${ICON.copy} Link</button>
+ <button class="btn ghost" onclick="copyText(WLINK(),'İzləmə linki kopyalandı')">${ICON.eye} İzləmə linki</button>`}
+const _rw=renderWait;
+renderWait=function(){_rw();$('wshare').innerHTML=shareHtml();
+ $('wcount').textContent+=(S.spec?' · siz izləyicisiniz':'')+(S.watchers?` · izləyici: ${S.watchers}`:'')};
+const _rg=renderGame;
+renderGame=function(){_rg();const sp=!!S.spec;
+ $('gshare').innerHTML=ICON.share;
+ $('greacts').style.display=sp?'none':'';$('gvoice').style.display=sp?'none':'';$('ghand').style.display=sp?'none':'';
+ if(S.watchers)$('ginfo').textContent+=` · izləyici: ${S.watchers}`;
+ if(sp){$('gact').innerHTML='';const g=S.game;
+  $('gstatus').textContent=(g.result?'Əl bitdi':nm(g.turn)+' oynayır…')+' · izləyici rejimi'}};
+const _sr=showResult;
+showResult=function(g){if(!S.spec)return _sr(g);const r=g.result;
+ $('mbody').innerHTML=`<div class="big">${g.over?'Oyun bitdi':'Əl bitdi'}</div>
+ <p><b>${nm(r.winner)}</b>${g.n===4?' komandası':''} <b style="color:var(--gold)">+${r.points}</b> xal qazandı</p>
+ <div class="score" style="margin:12px 0">${g.score.map((x,i)=>`<div class="sc"><small>${g.n===4?nm(i)+' + '+nm(i+2):nm(i)}</small><br><b>${x}</b></div>`).join('')}</div>
+ <button class="btn ghost" onclick="leave()">Çıx</button>`;$('modal').classList.add('on')};
 </script>
 </body>
 </html>
