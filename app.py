@@ -17,6 +17,7 @@ CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
 rooms = {}       # kod -> otaq
 users = {}       # sid -> istifadəçi
 user_room = {}   # uid -> kod
+spec_room = {}   # sid -> kod (izləyicilər)
 last_react = {}
 last_react = {}
 
@@ -38,7 +39,8 @@ def health():
 
 def payload(r, i):
     g = r["game"]
-    return {"code": r["code"], "n": r["n"], "seat": i,
+    return {"code": r["code"], "n": r["n"], "seat": i, "spec": i < 0,
+            "watchers": len(r.get("specs", {})),
             "players": [{"name": p["name"], "pic": p["pic"]} for p in r["players"]],
             "voice": sorted(r.get("voice", [])),
             "voice": sorted(r.get("voice", [])),
@@ -49,6 +51,8 @@ def push(r):
     for i, sid in enumerate(r["sids"]):
         if sid:
             sio.emit("state", payload(r, i), to=sid)
+    for sid in list(r.get("specs", {})):
+        sio.emit("state", payload(r, -1), to=sid)
 
 
 def me():
@@ -130,6 +134,12 @@ def leave(_=None):
     u = users.get(request.sid)
     if not u:
         return
+    code = spec_room.pop(request.sid, None)
+    if code is not None:
+        if code in rooms:
+            rooms[code].get("specs", {}).pop(request.sid, None)
+            push(rooms[code])
+        return emit("left")
     r, seat = my_room(u)
     if not r:
         return
@@ -138,12 +148,14 @@ def leave(_=None):
             if sid and i != seat:
                 sio.emit("closed", f"{u['name']} oyundan çıxdı", to=sid)
             user_room.pop(r["players"][i]["uid"], None)
+        close_specs(r)
         rooms.pop(r["code"], None)
     else:
         r["players"].pop(seat)
         r["sids"].pop(seat)
         user_room.pop(u["uid"], None)
         if not r["players"]:
+            close_specs(r)
             rooms.pop(r["code"], None)
         else:
             push(r)
@@ -191,6 +203,10 @@ def rematch(_=None):
 @sio.on("disconnect")
 def disc():
     last_react.pop(request.sid, None)
+    code = spec_room.pop(request.sid, None)
+    if code in rooms:
+        rooms[code].get("specs", {}).pop(request.sid, None)
+        push(rooms[code])
     last_react.pop(request.sid, None)
     u = users.pop(request.sid, None)
     if not u:
@@ -202,6 +218,47 @@ def disc():
         push(r)
         r.get("voice", set()).discard(seat)
         push(r)
+
+
+def close_specs(r):
+    for sid in list(r.get("specs", {})):
+        sio.emit("closed", "Otaq bağlandı", to=sid)
+        spec_room.pop(sid, None)
+    r["specs"] = {}
+
+
+@sio.on("spectate")
+def spectate(d):
+    u = me()
+    if not u:
+        return
+    r = rooms.get(str(d.get("code", "")).upper().strip())
+    if not r:
+        return emit("err", "Otaq tapılmadı")
+    mr, _s = my_room(u)
+    if mr is r:
+        return push(r)
+    leave(None)
+    r.setdefault("specs", {})[request.sid] = u
+    spec_room[request.sid] = r["code"]
+    push(r)
+
+
+@sio.on("enter")
+def enter(d):
+    u = me()
+    if not u:
+        return
+    r = rooms.get(str(d.get("code", "")).upper().strip())
+    if not r:
+        return emit("err", "Otaq tapılmadı")
+    mr, _s = my_room(u)
+    if mr is r:
+        return push(r)
+    if not r["game"] and len(r["players"]) < r["n"]:
+        join(d)
+    else:
+        spectate(d)
 
 
 @sio.on("react")

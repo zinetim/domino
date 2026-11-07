@@ -133,7 +133,7 @@ class Game:
     def view(self, seat):
         mine = self.turn == seat and not self.result
         return {
-            "n": self.n, "hand": self.hands[seat], "counts": [len(h) for h in self.hands],
+            "n": self.n, "hand": self.hands[seat] if seat >= 0 else [], "counts": [len(h) for h in self.hands],
             "board": self.board, "ends": self.ends(), "turn": self.turn,
             "market": len(self.market), "score": self.score, "round": self.round,
             "can_draw": self.can_draw(seat), "playable": self.playable(seat) if mine else [],
