@@ -127,6 +127,40 @@ input:focus{border-color:var(--gold)}
 .spk.off{color:#ff8a80}
 .bub .nm{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:2px;background:rgba(0,0,0,.7);
  color:#fff;padding:1px 9px;border-radius:9px;font-size:11px;font-weight:700;white-space:nowrap}
+
+body{background:radial-gradient(ellipse at 50% 15%,#23865d 0,#0f4d36 50%,#06271b 100%)}
+.boardwrap{border:0;border-radius:28px;padding:18px 10px;min-height:46vh;margin:12px 10px;position:relative;
+ background:radial-gradient(ellipse at 50% 40%,rgba(255,255,255,.08),transparent 60%),radial-gradient(ellipse at center,#1f7f57 0,#0e5136 70%,#08331f 100%);
+ box-shadow:inset 0 0 60px rgba(0,0,0,.55),inset 0 0 0 3px rgba(0,0,0,.25),0 0 0 7px #6b4220,0 0 0 9px #8a5a2c,0 0 0 11px #3d230d,0 14px 30px rgba(0,0,0,.5)}
+.boardwrap:before{content:"DOMINO";position:absolute;inset:0;display:grid;place-items:center;font-weight:900;
+ font-size:clamp(40px,14vw,110px);letter-spacing:.2em;color:rgba(255,255,255,.035);pointer-events:none}
+.tile{background:linear-gradient(160deg,#fffef8 0,#f3ecd3 55%,#ddd3b0 100%);
+ box-shadow:0 2px 0 #b3a97f,0 4px 0 #8f8660,0 7px 10px rgba(0,0,0,.45),inset 0 1px 0 #fff}
+.bar{background:#a99f78}
+.bar:after{content:"";position:absolute;left:50%;top:50%;width:calc(var(--u)*.22);height:calc(var(--u)*.22);
+ margin:calc(var(--u)*-.11) 0 0 calc(var(--u)*-.11);border-radius:50%;
+ background:radial-gradient(circle at 35% 30%,#fff6c8,#c8a13a 60%,#7a5c14);box-shadow:0 1px 2px rgba(0,0,0,.5)}
+.half.n1 i.on{background:radial-gradient(circle at 35% 30%,#ff8a80,#c62828)}
+.half.n2 i.on{background:radial-gradient(circle at 35% 30%,#82b1ff,#1565c0)}
+.half.n3 i.on{background:radial-gradient(circle at 35% 30%,#a5d6a7,#2e7d32)}
+.half.n4 i.on{background:radial-gradient(circle at 35% 30%,#ffcc80,#e65100)}
+.half.n5 i.on{background:radial-gradient(circle at 35% 30%,#ce93d8,#6a1b9a)}
+.half.n6 i.on{background:radial-gradient(circle at 35% 30%,#80cbc4,#00695c)}
+.tile.endt{box-shadow:0 2px 0 #b3a97f,0 4px 0 #8f8660,0 7px 10px rgba(0,0,0,.45),0 0 0 2px rgba(245,196,81,.95)}
+.tile.lastp{box-shadow:0 2px 0 #b3a97f,0 4px 0 #8f8660,0 0 0 3px #7dffb2,0 0 18px #7dffb2}
+.hand .tile.endt,.hand .tile.lastp{box-shadow:0 2px 0 #b3a97f,0 4px 0 #8f8660,0 7px 10px rgba(0,0,0,.45)}
+.hand{width:fit-content;max-width:100%;margin:0 auto;gap:6px;padding:24px 12px 14px;border-radius:18px;
+ background:linear-gradient(#7b4a22,#59311a);box-shadow:inset 0 6px 10px rgba(0,0,0,.45),0 4px 0 #3d230d,0 8px 14px rgba(0,0,0,.4)}
+.hand .tile.ok{transform:translateY(-14px);box-shadow:0 2px 0 #b3a97f,0 4px 0 #8f8660,0 0 0 3px var(--gold),0 0 20px var(--gold)}
+.status{width:fit-content;max-width:94%;margin:0 auto;padding:8px 20px;border-radius:999px;font-size:15px;
+ background:rgba(0,0,0,.32);border:1px solid rgba(255,255,255,.14)}
+.endsinfo{display:flex;justify-content:center;align-items:center;gap:10px;font-size:13px;min-height:28px;opacity:.95}
+.ec{width:26px;height:26px;border-radius:50%;display:inline-grid;place-items:center;font-weight:900;color:#fff;
+ box-shadow:0 2px 4px rgba(0,0,0,.4),inset 0 1px 1px rgba(255,255,255,.4);background:#777}
+.ec.n1{background:#c62828}.ec.n2{background:#1565c0}.ec.n3{background:#2e7d32}
+.ec.n4{background:#e65100}.ec.n5{background:#6a1b9a}.ec.n6{background:#00695c}
+.opp{background:linear-gradient(rgba(255,255,255,.12),rgba(255,255,255,.05))}
+.sc{background:linear-gradient(rgba(0,0,0,.35),rgba(0,0,0,.2))}
 </style>
 </head>
 <body>
@@ -177,6 +211,7 @@ input:focus{border-color:var(--gold)}
  <div class="row" id="gvoice"></div>
  <div class="score" id="gscore"></div>
  <div class="opps" id="gopps"></div>
+ <div class="endsinfo" id="gends"></div>
  <div class="boardwrap"><div class="board" id="gboard"></div></div>
  <div class="status" id="gstatus"></div>
  <div class="actions" id="gact"></div>
@@ -245,7 +280,7 @@ function copyCode(){navigator.clipboard?.writeText(S.code);toast('Kod kopyaland�
 
 /* ---------- DAŞ ÇƏKİLİŞİ ---------- */
 const PIPS={0:[],1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
-const half=n=>`<div class="half">${[...Array(9)].map((_,i)=>`<i class="${PIPS[n].includes(i)?'on':''}"></i>`).join('')}</div>`;
+const half=n=>`<div class="half n${n}">${[...Array(9)].map((_,i)=>`<i class="${PIPS[n].includes(i)?'on':''}"></i>`).join('')}</div>`;
 const tile=(a,b,cls='')=>`<div class="tile ${cls}" data-a="${a}" data-b="${b}">${half(a)}<span class="bar"></span>${half(b)}</div>`;
 
 /* ---------- OYUN ---------- */
@@ -455,6 +490,16 @@ function renderVoice(){const n=VS.size;
  $('gvoice').innerHTML=voiceOn
   ?`<button class="btn ${micMuted?'ghost':''}" onclick="micToggle()">${micMuted?ICON.micx:ICON.mic} ${micMuted?'Mikrofon bağlı':'Mikrofon açıq'}</button><button class="btn ghost" onclick="voiceToggle()">Səsdən çıx</button>`
   :`<button class="btn" onclick="voiceToggle()">${ICON.headset} Canlı səsə qoşul${n?' ('+n+' nəfər)':''}</button>`}
+
+/* ---------- STOL BƏZƏYİ ---------- */
+const _rb=renderBoard;
+renderBoard=function(g){_rb(g);
+ const bd=$('gboard'),T=[...bd.querySelectorAll('.cell:not(.ghost) .tile')],ge=$('gends');
+ if(ge)ge.innerHTML=g.ends?`Açıq uclar <span class="ec n${g.ends[0]}">${g.ends[0]}</span><span style="opacity:.5">—</span><span class="ec n${g.ends[1]}">${g.ends[1]}</span>`:'';
+ if(T.length){T[0].classList.add('endt');T[T.length-1].classList.add('endt')}
+ if(g.msg&&g.msg.kind==='play'){const k=g.msg.tile.join();
+  T.forEach(t=>{if([+t.dataset.a,+t.dataset.b].sort().join()===k)t.classList.add('lastp')})}
+};
 </script>
 </body>
 </html>
