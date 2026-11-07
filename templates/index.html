@@ -165,6 +165,24 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;gap:4px}
 .btn.wa{background:linear-gradient(#6ff0a0,#25d366);box-shadow:0 4px 0 #148a43,0 8px 16px rgba(0,0,0,.3)}
 .btn.tg{background:linear-gradient(#7fd0ff,#229ed9);box-shadow:0 4px 0 #136a94,0 8px 16px rgba(0,0,0,.3)}
 #wshare .btn{padding:10px 14px;font-size:14px}
+
+.tile{outline:2px solid #1d1d1d;outline-offset:-1px}
+.tile:not(.vert) .bar{width:3px;transform:translateX(-1.5px)}
+.tile.vert .bar{height:3px;transform:translateY(-1.5px)}
+.bar{background:#6b6246}
+.half i{width:80%;height:80%}
+.half i.on{box-shadow:0 0 0 1.5px rgba(0,0,0,.55),inset 0 -1px 1px rgba(255,255,255,.3)}
+.boardwrap{background:radial-gradient(ellipse at 50% 40%,rgba(255,255,255,.05),transparent 60%),radial-gradient(ellipse at center,#15694a 0,#0a4130 70%,#052a1c 100%)}
+#game .hand{--u:calc(var(--hz,1)*clamp(40px,11vw,66px))}
+@media(min-width:720px){#game .hand{--u:calc(var(--hz,1)*66px)}}
+.ec{width:34px;height:34px;font-size:19px}
+.endsinfo{font-size:15px}
+.status{font-size:calc(16px + var(--hz,1)*2px)}
+.rm{display:flex;align-items:center;gap:10px;background:rgba(0,0,0,.25);border-radius:14px;padding:10px 12px;margin-bottom:8px}
+.rm .nm{flex:1;min-width:0;font-size:14px;line-height:1.4}
+.rm .nm small{opacity:.75;display:block}
+.rm .btn{padding:8px 14px;font-size:14px;flex:none}
+.live{display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff5252;margin-right:5px;animation:blink 1s infinite alternate}
 </style>
 </head>
 <body>
@@ -191,6 +209,8 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;gap:4px}
  <div class="sep">— və ya kodla qoşul —</div>
  <div class="row" style="flex-wrap:nowrap"><input id="jcode" maxlength="4" placeholder="KOD" style="margin:0;text-transform:uppercase;text-align:center;letter-spacing:6px">
   <button class="btn" onclick="join()">Qoşul</button></div>
+ <div class="sep">— aktiv oyunlar —</div>
+ <div id="rlist"></div>
  <div class="rules">
   <b>2 nəfər:</b> bazardan yalnız cüt daş, bazarda son 2 daş qalır.<br>
   <b>3 nəfər:</b> tək-tək çəkilir, bazarda son 1 daş qalır.<br>
@@ -211,7 +231,8 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;gap:4px}
 
 <section class="screen" id="game">
  <div class="top"><span class="chip" id="ginfo"></span>
-  <div class="row"><button class="chip" id="gshare" onclick="shareLink()" title="Linki paylaş" style="cursor:pointer;color:#fff"></button>
+  <div class="row"><button class="chip" id="zoomb" onclick="cycleZoom()" title="Daşları böyüt" style="cursor:pointer;color:#fff;font-weight:800">Aa</button>
+  <button class="chip" id="gshare" onclick="shareLink()" title="Linki paylaş" style="cursor:pointer;color:#fff"></button>
   <button class="chip" id="mute" onclick="toggleMute()" style="cursor:pointer;color:#fff">🔊</button>
   <button class="chip" onclick="if(confirm('Oyundan çıxılsın?'))leave()" style="cursor:pointer;color:#fff"><svg class="ic" viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></svg></button></div></div>
  <div class="row" id="gvoice"></div>
@@ -350,8 +371,8 @@ function renderBoard(g){
  const bd=$('gboard');
  if(!g.board.length){bd.style.cssText='';bd.innerHTML='<span style="opacity:.5;font-size:18px">Stol boşdur</span>';return}
  const W=Math.max(240,bd.parentElement.clientWidth-40);
- const cap=W<400?10:W<560?12:20;
- const u=Math.max(16,Math.min(44,Math.floor(W/cap)));
+ const cap=Math.max(5,Math.round((W<400?8:W<560?10:W<900?14:16)/ZOOM));
+ const u=Math.max(16,Math.min(Math.round(60*ZOOM),Math.floor(W/cap)));
  const mine=g.turn===S.seat&&!g.result,show=!!sel&&mine;
  let out='',maxB=0,dir=1,r=0,x=2,first=false;
  const cy=()=>r*2*u+u;
@@ -543,6 +564,27 @@ showResult=function(g){if(!S.spec)return _sr(g);const r=g.result;
  <p><b>${nm(r.winner)}</b>${g.n===4?' komandası':''} <b style="color:var(--gold)">+${r.points}</b> xal qazandı</p>
  <div class="score" style="margin:12px 0">${g.score.map((x,i)=>`<div class="sc"><small>${g.n===4?nm(i)+' + '+nm(i+2):nm(i)}</small><br><b>${x}</b></div>`).join('')}</div>
  <button class="btn ghost" onclick="leave()">Çıx</button>`;$('modal').classList.add('on')};
+
+/* ---------- BÖYÜTMƏ ---------- */
+let ZOOM=+localStorage.zoom||1;
+function applyZoom(){document.documentElement.style.setProperty('--hz',ZOOM);$('zoomb').textContent=ZOOM===1?'Aa':ZOOM<1.4?'Aa+':'Aa++'}
+function cycleZoom(){ZOOM=ZOOM===1?1.25:ZOOM===1.25?1.5:1;localStorage.zoom=ZOOM;applyZoom();if(S&&S.game)renderGame()}
+applyZoom();
+
+/* ---------- AKTİV OYUNLAR ---------- */
+function refreshRooms(){if($('lobby').classList.contains('on'))sock.emit('rooms')}
+setInterval(refreshRooms,4000);
+sock.on('authed',()=>setTimeout(refreshRooms,250));
+sock.on('left',()=>setTimeout(refreshRooms,250));
+sock.on('rooms',list=>{
+ $('rlist').innerHTML=list.length?list.map(r=>{
+  const st=r.playing?`<span class="live"></span>Oyun gedir · Əl ${r.round}${r.over?' (bitib)':''}`:`Gözləyir ${r.names.length}/${r.n}`;
+  const sc=r.playing&&r.n<4?' · '+r.score.join(' : '):r.playing?' · '+r.score.join(' : '):'';
+  const btn=r.playing?`<button class="btn" onclick="sock.emit('spectate',{code:'${r.code}'})">İzlə</button>`
+   :`<button class="btn ghost" onclick="sock.emit('join',{code:'${r.code}'})">Qoşul</button>`;
+  return `<div class="rm"><div class="nm"><b>${r.names.map(n=>n.replace(/</g,'&lt;')).join(', ')}</b>
+   <small>${r.code} · ${r.n} nəfər · ${st}${sc}${r.watchers?' · '+r.watchers+' izləyici':''}</small></div>${btn}</div>`}).join('')
+  :'<p class="rules" style="text-align:center;margin:0 0 10px">Hazırda aktiv otaq yoxdur</p>'});
 </script>
 </body>
 </html>

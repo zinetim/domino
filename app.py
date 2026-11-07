@@ -261,6 +261,21 @@ def enter(d):
         spectate(d)
 
 
+@sio.on("rooms")
+def rooms_list(_=None):
+    if not me():
+        return
+    out = []
+    for r in rooms.values():
+        g = r["game"]
+        out.append({"code": r["code"], "n": r["n"], "names": [p["name"] for p in r["players"]],
+                    "playing": bool(g), "round": g.round if g else 0,
+                    "score": g.score if g else [], "over": bool(g and g.over),
+                    "watchers": len(r.get("specs", {}))})
+    out.sort(key=lambda x: (not x["playing"], x["code"]))
+    emit("rooms", out[:30])
+
+
 @sio.on("react")
 def react(d):
     u = me()
