@@ -93,6 +93,12 @@ input:focus{border-color:var(--gold)}
 @media(min-width:720px){:root{--u:44px}.hand{--u:50px}}
 .board{flex-direction:column;flex-wrap:nowrap;gap:6px;width:100%;align-items:stretch}
 .brow{display:flex;gap:4px;align-items:center;min-height:calc(var(--u)*2)}
+.slot{width:calc(var(--u)*2);display:flex;justify-content:center;align-items:center;flex:none}
+.brow{justify-content:flex-start}.brow.rev{justify-content:flex-end}
+.plus{position:absolute;top:50%;width:calc(var(--u)*.85);height:calc(var(--u)*.85);margin-top:calc(var(--u)*-.425);
+ border-radius:50%;background:var(--gold);color:var(--ink);font-weight:900;font-size:calc(var(--u)*.7);line-height:1;
+ display:grid;place-items:center;z-index:3;cursor:pointer;box-shadow:0 0 0 3px rgba(0,0,0,.35),0 0 14px var(--gold)}
+.plus.l{left:calc(var(--u)*-.425)}.plus.r{right:calc(var(--u)*-.425)}
 </style>
 </head>
 <body>
@@ -251,10 +257,11 @@ function renderGame(){const g=S.game,me=S.seat;
  if(mine&&!g.board.length&&!g.must)st='🟢 İstədiyiniz daşla başlayın';
  const m=g.msg;if(m&&!g.result){if(m.kind==='pass')st=`${nm(m.seat)} pas keçdi · `+st;
   if(m.kind==='draw'&&m.seat!==me)st=`${nm(m.seat)} bazara getdi · `+st}
+ if(sel&&mine)st='🟡 Daş iki ucda uyğundur — + işarəsinə basın';
  $('gstatus').textContent=st;
  // əməllər
  let act='';
- if(sel&&mine){const [L,R]=g.ends;act=`<button class="btn" onclick="put('L')">◀ Sol (${L})</button><button class="btn" onclick="put('R')">Sağ (${R}) ▶</button><button class="btn ghost" onclick="sel=null;renderGame()">Ləğv</button>`}
+ if(sel&&mine){const [L,R]=g.ends;act=`<button class="btn ghost" onclick="sel=null;renderGame()">Ləğv</button>`}
  else if(g.n<4&&g.board.length)act=`<button class="btn" ${g.can_draw?'':'disabled'} onclick="sock.emit('draw')">🛒 Bazar (${g.market}${g.n===2?' · cüt':''})</button>`;
  $('gact').innerHTML=act;
  // əl
@@ -269,17 +276,22 @@ function renderGame(){const g=S.game,me=S.seat;
 function renderBoard(g){
  const bd=$('gboard');
  if(!g.board.length){bd.innerHTML='<span style="opacity:.5;font-size:18px">Stol boşdur</span>';return}
- const W=Math.max(240,bd.parentElement.clientWidth-32);
- const cols=W<480?6:9;
- const u=Math.max(22,Math.min(46,Math.floor((W-cols*4)/(cols*2))));
+ const W=Math.max(240,bd.parentElement.clientWidth-40);
+ const per=W<480?6:9,gap=4;
+ const u=Math.max(20,Math.min(44,Math.floor((W-(per-1)*gap)/(per*2))));
  bd.style.setProperty('--u',u+'px');
- const gap=4,rows=[];let cur=[],w=0;
- g.board.forEach(([a,b])=>{const iw=(a===b?u:2*u)+gap;
-  if(w+iw>W&&cur.length){rows.push(cur);cur=[];w=0}cur.push([a,b]);w+=iw});
- if(cur.length)rows.push(cur);
- bd.innerHTML=rows.map((r,i)=>{
-  const items=i%2?r.slice().reverse().map(([a,b])=>[b,a]):r;
-  return `<div class="brow" style="justify-content:${i%2?'flex-end':'flex-start'}">${items.map(([a,b])=>tile(a,b,a===b?'vert':'')).join('')}</div>`}).join('');
+ const mine=g.turn===S.seat&&!g.result,show=sel&&mine,last=g.board.length-1,rows=[];
+ for(let i=0;i<g.board.length;i+=per)rows.push(g.board.slice(i,i+per).map((t,j)=>({t,idx:i+j})));
+ bd.innerHTML=rows.map((r,ri)=>{const odd=ri%2;
+  const items=odd?r.slice().reverse():r;
+  return `<div class="brow ${odd?'rev':''}">${items.map(({t,idx})=>{
+   let [a,b]=t;if(odd)[a,b]=[b,a];
+   let h=tile(a,b,a===b?'vert':'');
+   let bg='';
+   if(show){if(idx===0)bg+=`<b class="plus l" onclick="put('L')">+</b>`;
+    if(idx===last)bg+=`<b class="plus ${odd?'l':'r'}" onclick="put('R')">+</b>`}
+   h=h.replace(/<\/div>$/,bg+'</div>');
+   return `<div class="slot">${h}</div>`}).join('')}</div>`}).join('');
  if(g.msg&&g.msg.kind==='play'){const k=g.msg.tile;
   bd.querySelectorAll('.tile').forEach(c=>{if([+c.dataset.a,+c.dataset.b].sort().join()===k.join())c.classList.add('pop')})}
 }
