@@ -120,7 +120,7 @@ def join(d):
 
 
 @sio.on("leave")
-def leave(_):
+def leave(_=None):
     u = users.get(request.sid)
     if not u:
         return
@@ -155,7 +155,7 @@ def play(d):
 
 
 @sio.on("draw")
-def draw(_):
+def draw(_=None):
     u = me()
     r, seat = my_room(u) if u else (None, None)
     if not r or not r["game"]:
@@ -165,7 +165,7 @@ def draw(_):
 
 
 @sio.on("next")
-def nxt(_):
+def nxt(_=None):
     u = me()
     r, _s = my_room(u) if u else (None, None)
     if r and r["game"]:
@@ -174,7 +174,7 @@ def nxt(_):
 
 
 @sio.on("rematch")
-def rematch(_):
+def rematch(_=None):
     u = me()
     r, _s = my_room(u) if u else (None, None)
     if r and r["game"] and r["game"].over:
