@@ -112,6 +112,19 @@ input:focus{border-color:var(--gold)}
 .cell.ghost{display:grid;place-items:center;cursor:pointer;border:2px dashed var(--gold);
  border-radius:calc(var(--u)*.2);background:rgba(245,196,81,.15);animation:blink 1s infinite alternate}
 .gplus{color:var(--gold);font-size:calc(var(--u)*.9);line-height:1}
+
+.ic{width:1.15em;height:1.15em;vertical-align:-.2em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.btn .ic{margin-right:4px}
+.reacts{display:flex;gap:10px;justify-content:center;padding-bottom:4px}
+.rbtn{width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.25);background:var(--glass);padding:4px;cursor:pointer;transition:transform .1s}
+.rbtn:active{transform:scale(.8)}.rbtn svg{width:100%;height:100%}
+.bub{position:fixed;width:54px;height:54px;z-index:30;pointer-events:none;animation:floatup 2.2s ease-out forwards;filter:drop-shadow(0 4px 6px rgba(0,0,0,.4))}
+.bub svg{width:100%;height:100%}
+@keyframes floatup{0%{transform:translate(-50%,0) scale(.3);opacity:0}15%{transform:translate(-50%,-10px) scale(1.15);opacity:1}100%{transform:translate(-50%,-90px) scale(1);opacity:0}}
+.opp{position:relative}
+.opp.speak{border-color:#7dffb2!important;box-shadow:0 0 0 2px #7dffb2,0 0 18px #7dffb2}
+.spk{border:0;background:rgba(0,0,0,.3);color:#fff;border-radius:50%;width:32px;height:32px;display:grid;place-items:center;cursor:pointer;flex:none}
+.spk.off{color:#ff8a80}
 </style>
 </head>
 <body>
@@ -131,9 +144,9 @@ input:focus{border-color:var(--gold)}
   <button class="btn ghost" style="margin-left:auto;padding:8px 12px" onclick="logout()">Çıx</button></div>
  <p class="sub" style="margin:0 0 10px">Yeni otaq yarat</p>
  <div class="row">
-  <button class="btn" onclick="create(2)">👥 2 nəfər</button>
-  <button class="btn" onclick="create(3)">👥 3 nəfər</button>
-  <button class="btn" onclick="create(4)">👥 4 nəfər</button>
+  <button class="btn" onclick="create(2)"><svg class="ic" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6.5 6.5 0 0 1 3.5 6"/></svg> 2 nəfər</button>
+  <button class="btn" onclick="create(3)"><svg class="ic" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6.5 6.5 0 0 1 3.5 6"/></svg> 3 nəfər</button>
+  <button class="btn" onclick="create(4)"><svg class="ic" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6.5 6.5 0 0 1 3.5 6"/></svg> 4 nəfər</button>
  </div>
  <div class="sep">— və ya kodla qoşul —</div>
  <div class="row" style="flex-wrap:nowrap"><input id="jcode" maxlength="4" placeholder="KOD" style="margin:0;text-transform:uppercase;text-align:center;letter-spacing:6px">
@@ -149,7 +162,7 @@ input:focus{border-color:var(--gold)}
 <section class="screen" id="wait"><div class="card">
  <p class="sub" style="margin:0">Otaq kodu — dostlarınıza göndərin</p>
  <div class="code" id="wcode"></div>
- <div class="row"><button class="btn ghost" onclick="copyCode()">📋 Kodu kopyala</button></div>
+ <div class="row"><button class="btn ghost" onclick="copyCode()"><svg class="ic" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h8"/></svg> Kodu kopyala</button></div>
  <div class="plist" id="wlist"></div>
  <p class="sub" id="wcount"></p>
  <button class="btn ghost" style="width:100%" onclick="leave()">Otaqdan çıx</button>
@@ -158,19 +171,22 @@ input:focus{border-color:var(--gold)}
 <section class="screen" id="game">
  <div class="top"><span class="chip" id="ginfo"></span>
   <div class="row"><button class="chip" id="mute" onclick="toggleMute()" style="cursor:pointer;color:#fff">🔊</button>
-  <button class="chip" onclick="if(confirm('Oyundan çıxılsın?'))leave()" style="cursor:pointer;color:#fff">✕</button></div></div>
+  <button class="chip" onclick="if(confirm('Oyundan çıxılsın?'))leave()" style="cursor:pointer;color:#fff"><svg class="ic" viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></svg></button></div></div>
+ <div class="row" id="gvoice"></div>
  <div class="score" id="gscore"></div>
  <div class="opps" id="gopps"></div>
  <div class="boardwrap"><div class="board" id="gboard"></div></div>
  <div class="status" id="gstatus"></div>
  <div class="actions" id="gact"></div>
  <div class="hand" id="ghand"></div>
+ <div class="reacts" id="greacts"></div>
 </section>
 
 <div class="modal" id="modal"><div class="card" id="mbody"></div></div>
 
 <script>
 const $=id=>document.getElementById(id);
+const ICON={"mic": "<svg class=\"ic\" viewBox=\"0 0 24 24\"><rect x=\"9\" y=\"3\" width=\"6\" height=\"11\" rx=\"3\"/><path d=\"M5 11a7 7 0 0 0 14 0M12 18v3\"/></svg>", "micx": "<svg class=\"ic\" viewBox=\"0 0 24 24\"><rect x=\"9\" y=\"3\" width=\"6\" height=\"11\" rx=\"3\"/><path d=\"M5 11a7 7 0 0 0 14 0M12 18v3M3 3l18 18\"/></svg>", "vol": "<svg class=\"ic\" viewBox=\"0 0 24 24\"><path d=\"M4 9h4l5-4v14l-5-4H4z\"/><path d=\"M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11\"/></svg>", "volx": "<svg class=\"ic\" viewBox=\"0 0 24 24\"><path d=\"M4 9h4l5-4v14l-5-4H4z\"/><path d=\"M17 9l5 6M22 9l-5 6\"/></svg>", "close": "<svg class=\"ic\" viewBox=\"0 0 24 24\"><path d=\"M5 5l14 14M19 5L5 19\"/></svg>", "cart": "<svg class=\"ic\" viewBox=\"0 0 24 24\"><circle cx=\"9\" cy=\"20\" r=\"1.5\"/><circle cx=\"18\" cy=\"20\" r=\"1.5\"/><path d=\"M3 4h3l2.5 11h10l2-8H7\"/></svg>", "copy": "<svg class=\"ic\" viewBox=\"0 0 24 24\"><rect x=\"9\" y=\"9\" width=\"11\" height=\"11\" rx=\"2\"/><path d=\"M5 15V6a2 2 0 0 1 2-2h8\"/></svg>", "users": "<svg class=\"ic\" viewBox=\"0 0 24 24\"><circle cx=\"9\" cy=\"8\" r=\"3.5\"/><path d=\"M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6.5 6.5 0 0 1 3.5 6\"/></svg>", "trophy": "<svg class=\"ic\" viewBox=\"0 0 24 24\"><path d=\"M8 4h8v6a4 4 0 0 1-8 0zM8 6H4v1a4 4 0 0 0 4 4M16 6h4v1a4 4 0 0 1-4 4M12 14v4M8 21h8\"/></svg>", "headset": "<svg class=\"ic\" viewBox=\"0 0 24 24\"><path d=\"M4 14v-2a8 8 0 0 1 16 0v2\"/><rect x=\"3\" y=\"14\" width=\"4\" height=\"6\" rx=\"1.5\"/><rect x=\"17\" y=\"14\" width=\"4\" height=\"6\" rx=\"1.5\"/></svg>"};
 const sock=io({transports:['websocket','polling']});
 let ME=null,S=null,sel=null,lastMid=0,lastTurnMine=false,muted=localStorage.mute==='1';
 let CLIENT_ID='';
@@ -194,8 +210,8 @@ const SND={
  win(){[523,659,784,1046,1318].forEach((f,i)=>tone(f,.35,'triangle',.25,i*.12))},
  lose(){[392,330,262].forEach((f,i)=>tone(f,.4,'sawtooth',.1,i*.18))}
 };
-function toggleMute(){muted=!muted;localStorage.mute=muted?'1':'0';$('mute').textContent=muted?'🔇':'🔊'}
-$('mute').textContent=muted?'🔇':'🔊';
+function toggleMute(){muted=!muted;localStorage.mute=muted?'1':'0';$('mute').innerHTML=muted?ICON.volx:ICON.vol}
+$('mute').innerHTML=muted?ICON.volx:ICON.vol;
 
 /* ---------- GİRİŞ ---------- */
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id))}
@@ -214,10 +230,10 @@ $('gname').value=localStorage.gname||'';
 sock.on('connect',()=>{if(localStorage.cred)sock.emit('auth',{credential:localStorage.cred});
  else if(localStorage.gname)sock.emit('auth',{name:localStorage.gname,gid:localStorage.gid})});
 sock.on('autherr',m=>{localStorage.removeItem('cred');$('lerr').textContent=m});
-sock.on('authed',u=>{ME=u;avatar($('lav'),u);$('lname').textContent=u.name;if(!S)show('lobby')});
+sock.on('authed',u=>{ME=u;if(voiceOn){closeAll();sock.emit('voice',{on:true})};avatar($('lav'),u);$('lname').textContent=u.name;if(!S)show('lobby')});
 sock.on('err',m=>{toast(m);SND.err()});
-sock.on('left',()=>{S=null;show('lobby')});
-sock.on('closed',m=>{S=null;$('modal').classList.remove('on');toast(m);show('lobby')});
+sock.on('left',()=>{stopVoice(true);S=null;show('lobby')});
+sock.on('closed',m=>{stopVoice(true);S=null;$('modal').classList.remove('on');toast(m);show('lobby')});
 
 function avatar(el,p){el.textContent=p.pic?'':(p.name||'?')[0].toUpperCase();el.style.backgroundImage=p.pic?`url(${p.pic})`:''}
 function create(n){sock.emit('create',{n})}
@@ -231,7 +247,7 @@ const half=n=>`<div class="half">${[...Array(9)].map((_,i)=>`<i class="${PIPS[n]
 const tile=(a,b,cls='')=>`<div class="tile ${cls}" data-a="${a}" data-b="${b}">${half(a)}<span class="bar"></span>${half(b)}</div>`;
 
 /* ---------- OYUN ---------- */
-sock.on('state',s=>{const prev=S;S=s;
+sock.on('state',s=>{const prev=S;S=s;VS=new Set(s.voice||[]);syncPeers();
  if(!s.game){show('wait');renderWait();return}
  show('game');const g=s.game;
  if(!prev||!prev.game||g.round!==prev.game.round)sel=null;
@@ -258,24 +274,24 @@ function renderGame(){const g=S.game,me=S.seat;
   return `<div class="sc ${isMe?'me':''} ${turn?'turn':''}"><small>${label}${isMe?' (siz)':''}</small><br><b>${sc}</b><small> / ${g.win}</small>
   <div class="bar2"><i style="width:${Math.min(100,sc/g.win*100)}%"></i></div></div>`}).join('');
  // rəqiblər
- $('gopps').innerHTML=S.players.map((p,i)=>i===me?'':`<div class="opp ${g.turn===i&&!g.result?'turn':''}">
+ $('gopps').innerHTML=S.players.map((p,i)=>i===me?'':`<div class="opp ${g.turn===i&&!g.result?'turn':''}" data-seat="${i}">
   <div class="av" style="${p.pic?`background-image:url(${p.pic})`:''}">${p.pic?'':p.name[0].toUpperCase()}</div>
-  <div><b>${p.name}</b> ${teams&&i%2===me%2?'<span class="tag">tərəfdaş</span>':''}<br><div class="backs">${'<i></i>'.repeat(g.counts[i])}</div></div></div>`).join('');
+  <div><b>${p.name}</b> ${teams&&i%2===me%2?'<span class="tag">tərəfdaş</span>':''}<br><div class="backs">${'<i></i>'.repeat(g.counts[i])}</div></div>${voiceBtn(i)}</div>`).join('');
  // stol
  renderBoard(g);
  // vəziyyət
  const mine=g.turn===me&&!g.result;
- let st=g.result?'Əl bitdi':mine?'🟢 Sizin növbəniz':`⏳ ${nm(g.turn)} düşünür…`;
- if(mine&&!g.board.length&&g.must)st=`🟢 ${g.must[0]}-${g.must[1]} daşı ilə başlayın`;
- if(mine&&!g.board.length&&!g.must)st='🟢 İstədiyiniz daşla başlayın';
+ let st=g.result?'Əl bitdi':mine?'Sizin növbəniz':`${nm(g.turn)} düşünür…`;
+ if(mine&&!g.board.length&&g.must)st=`${g.must[0]}-${g.must[1]} daşı ilə başlayın`;
+ if(mine&&!g.board.length&&!g.must)st='İstədiyiniz daşla başlayın';
  const m=g.msg;if(m&&!g.result){if(m.kind==='pass')st=`${nm(m.seat)} pas keçdi · `+st;
   if(m.kind==='draw'&&m.seat!==me)st=`${nm(m.seat)} bazara getdi · `+st}
- if(sel&&mine)st='🟡 Daş iki ucda uyğundur — + işarəsinə basın';
+ if(sel&&mine)st='Daş iki ucda uyğundur — + işarəsinə basın';
  $('gstatus').textContent=st;
  // əməllər
  let act='';
  if(sel&&mine){const [L,R]=g.ends;act=`<button class="btn ghost" onclick="sel=null;renderGame()">Ləğv</button>`}
- else if(g.n<4&&g.board.length)act=`<button class="btn" ${g.can_draw?'':'disabled'} onclick="sock.emit('draw')">🛒 Bazar (${g.market}${g.n===2?' · cüt':''})</button>`;
+ else if(g.n<4&&g.board.length)act=`<button class="btn" ${g.can_draw?'':'disabled'} onclick="sock.emit('draw')">${ICON.cart} Bazar (${g.market}${g.n===2?' · cüt':''})</button>`;
  $('gact').innerHTML=act;
  // əl
  $('ghand').innerHTML=g.hand.map(([a,b])=>{const ok=g.playable.some(t=>t[0]===a&&t[1]===b);
@@ -283,6 +299,7 @@ function renderGame(){const g=S.game,me=S.seat;
   return tile(a,b,`vert ${ok?'ok':mine?'dim':''} ${s?'sel':''}`)}).join('');
  document.querySelectorAll('#ghand .tile').forEach(el=>el.onclick=()=>clickTile(+el.dataset.a,+el.dataset.b));
  // nəticə
+ renderVoice();applySpeak();
  if(g.result)showResult(g);else $('modal').classList.remove('on');
 }
 
@@ -331,14 +348,96 @@ function put(side){const t=sel;sel=null;sock.emit('play',{tile:t,side})}
 
 function showResult(g){const r=g.result,teams=g.n===4,me=S.seat;
  const win=teams?r.winner%2===me%2:r.winner===me;
- let h=`<div class="big">${g.over?(win?'🏆 QALİBSİNİZ!':'Oyun bitdi'):win?'🎉 Əli qazandınız':'Əl bitdi'}</div>
+ let h=`<div class="big">${g.over?(win?ICON.trophy+' QALİBSİNİZ!':'Oyun bitdi'):win?'Əli qazandınız':'Əl bitdi'}</div>
  <p>${r.blocked?'Oyun bağlandı (balıq). ':''}<b>${nm(r.winner)}</b>${teams?' komandası':''} <b style="color:var(--gold)">+${r.points}</b> xal qazandı</p><div style="margin:12px 0">`;
  h+=r.hands.map((hd,i)=>`<div class="mh"><span>${nm(i)}</span><span class="row" style="gap:4px;justify-content:flex-end">${hd.length?hd.map(([a,b])=>tile(a,b,'vert')).join(''):'<small>daşı bitdi ✓</small>'}</span></div>`).join('')+'</div>';
  h+='<div class="score">'+g.score.map((s,i)=>`<div class="sc"><small>${teams?`${nm(i)} + ${nm(i+2)}`:nm(i)}</small><br><b>${s}</b></div>`).join('')+'</div><br>';
  if(g.over){let best=g.score.indexOf(Math.max(...g.score));
-  h+=`<p style="margin-bottom:12px">Qalib: <b>${teams?nm(best)+' + '+nm(best+2):nm(best)}</b></p><div class="row"><button class="btn" onclick="sock.emit('rematch')">🔁 Yenidən</button><button class="btn ghost" onclick="leave()">Çıx</button></div>`}
+  h+=`<p style="margin-bottom:12px">Qalib: <b>${teams?nm(best)+' + '+nm(best+2):nm(best)}</b></p><div class="row"><button class="btn" onclick="sock.emit('rematch')">Yenidən</button><button class="btn ghost" onclick="leave()">Çıx</button></div>`}
  else h+=`<button class="btn" onclick="sock.emit('next')">Növbəti əl ▶</button>`;
  $('mbody').innerHTML=h;$('modal').classList.add('on')}
+
+/* ---------- REAKSİYALAR ---------- */
+const RL=['Gülüş','Kədər','Düşünürəm','Əla oyun','Tez ol'];
+function face(k){
+ const st='stroke="#4a2c00" stroke-width="2.4" stroke-linecap="round" fill="none"';
+ const base='<circle cx="20" cy="20" r="18" fill="#ffd34d" stroke="#c28a00" stroke-width="2"/>';
+ const hour='<circle cx="20" cy="20" r="18" fill="#7ec8ff" stroke="#2b7bb9" stroke-width="2"/>';
+ const F=[
+  `<path d="M9 16q3-5 6 0M25 16q3-5 6 0" ${st}/><path d="M10 23h20q-1 11-10 11t-10-11z" fill="#4a2c00"/><path d="M14 31q6 4 12 0" fill="#ff7a7a"/><path d="M6 20q-3 4 0 6q3-2 0-6zM34 20q3 4 0 6q-3-2 0-6z" fill="#5cc8ff"/>`,
+  `<circle cx="13" cy="18" r="2.5" fill="#4a2c00"/><circle cx="27" cy="18" r="2.5" fill="#4a2c00"/><path d="M8 12l8 3M32 12l-8 3" ${st}/><path d="M13 30q7-7 14 0" ${st}/><path d="M11 22q-3 5 0 7q3-2 0-7z" fill="#5cc8ff"/>`,
+  `<circle cx="13" cy="19" r="2.5" fill="#4a2c00"/><circle cx="27" cy="19" r="2.5" fill="#4a2c00"/><path d="M8 13q4-4 9 0M24 14h8" ${st}/><path d="M15 29h10" ${st}/><text x="29" y="11" font-size="12" font-weight="800" fill="#fff" stroke="#c28a00" stroke-width=".6">?</text>`,
+  `<path d="M6 15h28v5q0 5-5 5h-4q-3 0-3-4h-4q0 4-3 4h-4q-5 0-5-5z" fill="#111"/><path d="M13 30q7 6 14 0" ${st}/>`,
+  `<path d="M12 9h16M12 31h16M13 9q0 9 7 11q7 2 7 11M27 9q0 9-7 11q-7 2-7 11" stroke="#fff" stroke-width="2.6" stroke-linecap="round" fill="none"/>`];
+ return `<svg viewBox="0 0 40 40">${k===4?hour:base}${F[k]}</svg>`}
+$('greacts').innerHTML=RL.map((l,k)=>`<button class="rbtn" title="${l}" onclick="react(${k})">${face(k)}</button>`).join('');
+function react(k){sock.emit('react',{k})}
+function playReact(k){
+ if(k===0)[600,760,980].forEach((f,i)=>tone(f,.1,'triangle',.25,i*.07));
+ else if(k===1)tone(440,.5,'sine',.22,0,180);
+ else if(k===2){tone(420,.15,'sine',.2);tone(480,.15,'sine',.2,.18)}
+ else if(k===3){[523,659,784].forEach(f=>tone(f,.4,'triangle',.18))}
+ else{tone(900,.05,'square',.1);tone(900,.05,'square',.1,.25)}}
+sock.on('react',({seat,k})=>{playReact(k);if(!S)return;
+ const el=seat===S.seat?$('ghand'):document.querySelector(`.opp[data-seat="${seat}"]`);if(!el)return;
+ const r=el.getBoundingClientRect(),b=document.createElement('div');
+ b.className='bub';b.innerHTML=face(k);b.style.left=(r.left+r.width/2)+'px';
+ b.style.top=(seat===S.seat?r.top:r.top+r.height*.1)+'px';document.body.appendChild(b);setTimeout(()=>b.remove(),2300)});
+
+/* ---------- CANLI SƏS (WebRTC) ---------- */
+const ICE={iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},
+ {urls:['turn:openrelay.metered.ca:80','turn:openrelay.metered.ca:443','turn:openrelay.metered.ca:443?transport=tcp'],username:'openrelayproject',credential:'openrelayproject'}]};
+let localStream=null,voiceOn=false,micMuted=false,VS=new Set(),peers={},muteOpp={},SPK={};
+async function voiceToggle(){
+ if(voiceOn)return stopVoice();
+ try{localStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}})}
+ catch(e){return toast('Mikrofona icazə verilməyib')}
+ ac();voiceOn=true;micMuted=false;sock.emit('voice',{on:true});if(S&&S.game)renderGame()}
+function stopVoice(silent){
+ closeAll();if(localStream){localStream.getTracks().forEach(t=>t.stop());localStream=null}
+ const was=voiceOn;voiceOn=false;micMuted=false;
+ if(was&&!silent)sock.emit('voice',{on:false});
+ if(S&&S.game)renderGame()}
+function micToggle(){micMuted=!micMuted;localStream&&localStream.getAudioTracks().forEach(t=>t.enabled=!micMuted);renderVoice()}
+function toggleOpp(i){muteOpp[i]=!muteOpp[i];if(peers[i]&&peers[i].audio)peers[i].audio.muted=muteOpp[i];renderGame()}
+function closePeer(seat){const p=peers[seat];if(!p)return;try{p.pc.close()}catch(e){}
+ if(p.audio){p.audio.srcObject=null}delete peers[seat];SPK[seat]=false}
+function closeAll(){Object.keys(peers).forEach(closePeer)}
+function syncPeers(){Object.keys(peers).forEach(k=>{if(!VS.has(+k))closePeer(k)})}
+function mkPeer(seat,init){
+ const pc=new RTCPeerConnection(ICE),p=peers[seat]={pc,audio:null,q:[]};
+ localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));
+ pc.onicecandidate=e=>{if(e.candidate)sock.emit('rtc',{to:seat,data:{c:e.candidate}})};
+ pc.ontrack=e=>{if(!p.audio){p.audio=new Audio();p.audio.autoplay=true}
+  p.audio.srcObject=e.streams[0];p.audio.muted=!!muteOpp[seat];p.audio.play().catch(()=>{});watchSpeak(seat,e.streams[0])};
+ if(init)pc.createOffer().then(o=>pc.setLocalDescription(o)).then(()=>sock.emit('rtc',{to:seat,data:{d:pc.localDescription}}));
+ return p}
+sock.on('voicepeers',list=>{if(!voiceOn)return;list.forEach(s=>{closePeer(s);mkPeer(s,true)})});
+sock.on('rtc',async({from,data})=>{
+ if(!voiceOn||!data)return;
+ try{
+  if(data.d&&data.d.type==='offer'){closePeer(from);mkPeer(from,false)}
+  const p=peers[from];if(!p)return;
+  if(data.d){await p.pc.setRemoteDescription(data.d);
+   while(p.q.length)await p.pc.addIceCandidate(p.q.shift());
+   if(data.d.type==='offer'){const a=await p.pc.createAnswer();await p.pc.setLocalDescription(a);
+    sock.emit('rtc',{to:from,data:{d:p.pc.localDescription}})}}
+  else if(data.c){p.pc.remoteDescription?await p.pc.addIceCandidate(data.c):p.q.push(data.c)}
+ }catch(e){console.warn(e)}});
+function watchSpeak(seat,stream){
+ try{const A=ac(),src=A.createMediaStreamSource(stream),an=A.createAnalyser();an.fftSize=256;src.connect(an);
+  const buf=new Uint8Array(an.frequencyBinCount);
+  const id=setInterval(()=>{if(!peers[seat]){clearInterval(id);SPK[seat]=false;applySpeak();return}
+   an.getByteFrequencyData(buf);let m=0;for(const v of buf)m+=v;
+   const on=!muteOpp[seat]&&m/buf.length>14;if(SPK[seat]!==on){SPK[seat]=on;applySpeak()}},150)}catch(e){}}
+function applySpeak(){document.querySelectorAll('.opp').forEach(e=>e.classList.toggle('speak',!!SPK[e.dataset.seat]))}
+function voiceBtn(i){if(!VS.has(i))return '';
+ return voiceOn?`<button class="spk ${muteOpp[i]?'off':''}" onclick="toggleOpp(${i})" title="Bu oyunçunun səsini aç/bağla">${muteOpp[i]?ICON.volx:ICON.vol}</button>`
+  :`<span class="spk" style="opacity:.6">${ICON.mic}</span>`}
+function renderVoice(){const n=VS.size;
+ $('gvoice').innerHTML=voiceOn
+  ?`<button class="btn ${micMuted?'ghost':''}" onclick="micToggle()">${micMuted?ICON.micx:ICON.mic} ${micMuted?'Mikrofon bağlı':'Mikrofon açıq'}</button><button class="btn ghost" onclick="voiceToggle()">Səsdən çıx</button>`
+  :`<button class="btn" onclick="voiceToggle()">${ICON.headset} Canlı səsə qoşul${n?' ('+n+' nəfər)':''}</button>`}
 </script>
 </body>
 </html>
