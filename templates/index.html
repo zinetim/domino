@@ -42,44 +42,50 @@ input:focus{border-color:var(--gold)}
 .plist{display:flex;flex-direction:column;gap:8px;margin:16px 0}
 .plist .p{display:flex;gap:10px;align-items:center;background:rgba(0,0,0,.2);padding:8px 12px;border-radius:12px}
 /* oyun */
-#game{gap:10px;padding-bottom:max(16px,env(safe-area-inset-bottom))}
+#game{gap:8px;padding-bottom:0}
 .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .chip{background:var(--glass);border:1px solid rgba(255,255,255,.15);border-radius:999px;padding:6px 14px;font-size:13px}
 .score{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
-.sc{min-width:130px;background:rgba(0,0,0,.25);border-radius:14px;padding:8px 12px;border:2px solid transparent}
-.sc.me{border-color:var(--gold)}
-.sc b{font-size:22px;color:var(--gold)}
+.sc{min-width:110px;background:#0a2a1f;border-radius:14px;padding:8px 12px;border:2px solid #25604a;
+ box-shadow:none;animation:none}
+.sc.me{border-color:#ffb300}
+.sc b{font-size:24px;color:#ffb300}
 .bar2{height:5px;border-radius:5px;background:rgba(255,255,255,.15);margin-top:4px;overflow:hidden}
-.bar2 i{display:block;height:100%;background:var(--gold);transition:width .6s}
+.bar2 i{display:block;height:100%;background:#ffb300;transition:width .6s}
 .opps{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
-.opp{display:flex;align-items:center;gap:10px;background:var(--glass);padding:8px 14px;border-radius:16px;
- border:2px solid transparent;transition:.3s}
-.opp.turn,.sc.turn{border-color:#7dffb2;box-shadow:0 0 22px rgba(125,255,178,.55)}
-@keyframes pulse{50%{box-shadow:0 0 6px rgba(125,255,178,.2)}}
+.opp{display:flex;align-items:center;gap:10px;background:#0a2a1f;padding:8px 14px;border-radius:16px;
+ border:2px solid #25604a;transition:.3s;position:relative;box-shadow:none;animation:none}
+.opp.turn,.sc.turn{border-color:#ffb300;background:#3a3410;box-shadow:none;animation:none}
+.opp.speak{border-color:#00e676!important;box-shadow:0 0 0 2px #00e676!important}
 .backs{display:flex;gap:2px;max-width:150px;flex-wrap:wrap}
 .backs i{width:9px;height:18px;border-radius:2px;background:linear-gradient(#f8f3e3,#cfc6a8);border:1px solid #8a8466}
 .tag{font-size:11px;background:var(--gold);color:var(--ink);padding:1px 7px;border-radius:9px;font-weight:700}
-.boardwrap{flex:1;min-height:200px;border-radius:26px;padding:14px;display:flex;align-items:center;justify-content:center;
- background:radial-gradient(ellipse,rgba(0,0,0,.05),rgba(0,0,0,.3));border:3px solid #5b3a1c;
- box-shadow:inset 0 0 40px rgba(0,0,0,.45),0 0 0 6px #7a4d24}
-.board{display:flex;flex-wrap:wrap;gap:3px;align-items:center;justify-content:center;max-width:100%}
-.tile{display:inline-flex;background:linear-gradient(145deg,#fffdf4,#e4dcc0);border-radius:calc(var(--u)*.2);
- box-shadow:0 3px 0 #a89f7c,0 6px 10px rgba(0,0,0,.4);color:#111;position:relative;flex:none}
+.boardwrap{flex:1;min-height:200px;border-radius:18px;padding:12px 6px;display:flex;align-items:center;justify-content:center;
+ background:#17694b;border:4px solid #082a1e;box-shadow:none;margin:0;position:relative}
+.board{display:block;position:relative;flex:none}
+.tile{display:inline-flex;background:#fff;outline:3px solid #111;outline-offset:-1px;
+ border-radius:calc(var(--u)*.16);box-shadow:0 3px 0 rgba(0,0,0,.35);color:#111;position:relative;flex:none}
 .tile.vert{flex-direction:column}
 .half{width:var(--u);height:var(--u);display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:calc(var(--u)*.15)}
-.half i{place-self:center;width:72%;height:72%;border-radius:50%}
-.half i.on{background:radial-gradient(circle at 35% 30%,#555,#000);box-shadow:inset 0 -1px 1px rgba(255,255,255,.3)}
-.bar{position:absolute;background:#b8ae88}
-.tile:not(.vert) .bar{left:50%;top:15%;bottom:15%;width:2px;transform:translateX(-1px)}
-.tile.vert .bar{top:50%;left:15%;right:15%;height:2px;transform:translateY(-1px)}
+.half i{place-self:center;width:78%;height:78%;border-radius:50%}
+.half i.on{background:#111;box-shadow:none}
+.bar{position:absolute;background:#111}
+.tile:not(.vert) .bar{left:50%;top:15%;bottom:15%;width:3px;transform:translateX(-1.5px)}
+.tile.vert .bar{top:50%;left:15%;right:15%;height:3px;transform:translateY(-1.5px)}
+.tile.endt{outline-color:#ffb300;box-shadow:0 3px 0 rgba(0,0,0,.35)}
+.tile.lastp{outline-color:#00c853;box-shadow:0 3px 0 rgba(0,0,0,.35)}
 .pop{animation:pop .45s cubic-bezier(.2,1.6,.4,1)}
 @keyframes pop{from{transform:scale(.2) rotate(-25deg);opacity:0}}
-.status{text-align:center;min-height:26px;font-weight:600}
-.hand{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:6px 0 4px;--u:42px}
+.status{width:100%;max-width:100%;margin:0 auto;padding:10px 14px;border-radius:12px;font-size:18px;
+ font-weight:800;background:rgba(0,0,0,.35);color:#fff;border:0;text-align:center;min-height:26px}
+.status.mine{background:#ffb300;color:#111}
+.hand{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:14px 0 6px;--u:42px;
+ background:none;box-shadow:none;border-radius:0;width:fit-content;max-width:100%;margin:0 auto}
 .hand .tile{cursor:pointer;transition:transform .15s}
-.hand .tile.ok{transform:translateY(-12px);box-shadow:0 3px 0 #a89f7c,0 0 0 3px var(--gold),0 0 18px var(--gold)}
-.hand .tile.dim{filter:brightness(.6)}
-.hand .tile.sel{transform:translateY(-22px) scale(1.06)}
+.hand .tile.ok{transform:translateY(-10px);outline:4px solid #ffb300;
+ box-shadow:0 0 0 3px rgba(255,179,0,.5),0 3px 0 rgba(0,0,0,.35)}
+.hand .tile.dim{filter:none;background:#b9c4bf;opacity:.9}
+.hand .tile.sel{transform:translateY(-18px) scale(1.05)}
 .actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;min-height:50px}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;place-items:center;z-index:9;padding:16px}
 .modal.on{display:grid}
@@ -91,151 +97,60 @@ input:focus{border-color:var(--gold)}
 .toast.on{transform:translate(-50%,0)}
 .big{font-size:30px;font-weight:900;color:var(--gold);margin:6px 0}
 @media(min-width:720px){:root{--u:44px}.hand{--u:50px}}
-.board{flex-direction:column;flex-wrap:nowrap;gap:6px;width:100%;align-items:stretch}
-.brow{display:flex;gap:4px;align-items:center;min-height:calc(var(--u)*2)}
-.slot{width:calc(var(--u)*2);display:flex;justify-content:center;align-items:center;flex:none}
-.brow{justify-content:flex-start}.brow.rev{justify-content:flex-end}
+
 .plus{position:absolute;top:50%;width:calc(var(--u)*.85);height:calc(var(--u)*.85);margin-top:calc(var(--u)*-.425);
  border-radius:50%;background:var(--gold);color:var(--ink);font-weight:900;font-size:calc(var(--u)*.7);line-height:1;
  display:grid;place-items:center;z-index:3;cursor:pointer;box-shadow:0 0 0 3px rgba(0,0,0,.35),0 0 14px var(--gold)}
-.plus.l{left:calc(var(--u)*-.425)}.plus.r{right:calc(var(--u)*-.425)}
-.slot{width:auto;flex:none;display:flex;justify-content:center;align-items:center}
-.slot.p,.slot.d{width:var(--u)}.slot.w{width:calc(var(--u)*2)}
-.plus{position:static;margin:0;left:auto;right:auto;top:auto;width:calc(var(--u)*.85);height:calc(var(--u)*.85);
- font-size:calc(var(--u)*.7);animation:blink 1s infinite alternate}
 @keyframes blink{to{transform:scale(1.15)}}
-.board{align-items:stretch}
-.cell{display:flex;align-items:center;justify-content:center;transform:scale(.96)}
-.cell .plus{margin:0}
-.board{display:block;position:relative}
 .cell{position:absolute;display:flex;align-items:center;justify-content:center;transform:none}
-.cell.ghost{display:grid;place-items:center;cursor:pointer;border:2px dashed var(--gold);
- border-radius:calc(var(--u)*.2);background:rgba(245,196,81,.15);animation:blink 1s infinite alternate}
-.gplus{color:var(--gold);font-size:calc(var(--u)*.9);line-height:1}
+.cell.ghost{display:grid;place-items:center;cursor:pointer;border:2px dashed #ffb300;
+ border-radius:calc(var(--u)*.2);background:rgba(255,179,0,.22);animation:blink 1s infinite alternate}
+.gplus{color:#ffb300;font-size:calc(var(--u)*.9);line-height:1}
 
 .ic{width:1.15em;height:1.15em;vertical-align:-.2em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .btn .ic{margin-right:4px}
-.reacts{display:flex;gap:10px;justify-content:center;padding-bottom:4px}
-.rbtn{width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.25);background:var(--glass);padding:4px;cursor:pointer;transition:transform .1s}
-.rbtn:active{transform:scale(.8)}.rbtn svg{width:100%;height:100%}
+.reacts{display:flex;gap:6px;justify-content:center;padding:2px 0 0}
+.rbtn{width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,.25);background:#0a2a1f;padding:3px;cursor:pointer;transition:transform .1s}
+.rbtn:active{transform:scale(.8)}
+.rbtn svg{width:100%;height:100%}
 .bub{position:fixed;width:54px;height:54px;z-index:30;pointer-events:none;animation:floatup 2.2s ease-out forwards;filter:drop-shadow(0 4px 6px rgba(0,0,0,.4))}
 .bub svg{width:100%;height:100%}
 @keyframes floatup{0%{transform:translate(-50%,0) scale(.3);opacity:0}15%{transform:translate(-50%,-10px) scale(1.15);opacity:1}100%{transform:translate(-50%,-90px) scale(1);opacity:0}}
-.opp{position:relative}
-.opp.speak{border-color:#7dffb2!important;box-shadow:0 0 0 2px #7dffb2,0 0 18px #7dffb2}
 .spk{border:0;background:rgba(0,0,0,.3);color:#fff;border-radius:50%;width:32px;height:32px;display:grid;place-items:center;cursor:pointer;flex:none}
 .spk.off{color:#ff8a80}
 .bub .nm{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:2px;background:rgba(0,0,0,.7);
  color:#fff;padding:1px 9px;border-radius:9px;font-size:11px;font-weight:700;white-space:nowrap}
 
-body{background:radial-gradient(ellipse at 50% 15%,#23865d 0,#0f4d36 50%,#06271b 100%)}
-.boardwrap{border:0;border-radius:28px;padding:18px 10px;min-height:46vh;margin:12px 10px;position:relative;
- background:radial-gradient(ellipse at 50% 40%,rgba(255,255,255,.08),transparent 60%),radial-gradient(ellipse at center,#1f7f57 0,#0e5136 70%,#08331f 100%);
- box-shadow:inset 0 0 60px rgba(0,0,0,.55),inset 0 0 0 3px rgba(0,0,0,.25),0 0 0 7px #6b4220,0 0 0 9px #8a5a2c,0 0 0 11px #3d230d,0 14px 30px rgba(0,0,0,.5)}
-.boardwrap:before{content:"DOMINO";position:absolute;inset:0;display:grid;place-items:center;font-weight:900;
- font-size:clamp(40px,14vw,110px);letter-spacing:.2em;color:rgba(255,255,255,.035);pointer-events:none}
-.tile{background:linear-gradient(160deg,#fffef8 0,#f3ecd3 55%,#ddd3b0 100%);
- box-shadow:0 2px 0 #b3a97f,0 4px 0 #8f8660,0 7px 10px rgba(0,0,0,.45),inset 0 1px 0 #fff}
-.bar{background:#a99f78}
-.bar:after{content:"";position:absolute;left:50%;top:50%;width:calc(var(--u)*.22);height:calc(var(--u)*.22);
- margin:calc(var(--u)*-.11) 0 0 calc(var(--u)*-.11);border-radius:50%;
- background:radial-gradient(circle at 35% 30%,#fff6c8,#c8a13a 60%,#7a5c14);box-shadow:0 1px 2px rgba(0,0,0,.5)}
-.half.n1 i.on{background:radial-gradient(circle at 35% 30%,#ff8a80,#c62828)}
-.half.n2 i.on{background:radial-gradient(circle at 35% 30%,#82b1ff,#1565c0)}
-.half.n3 i.on{background:radial-gradient(circle at 35% 30%,#a5d6a7,#2e7d32)}
-.half.n4 i.on{background:radial-gradient(circle at 35% 30%,#ffcc80,#e65100)}
-.half.n5 i.on{background:radial-gradient(circle at 35% 30%,#ce93d8,#6a1b9a)}
-.half.n6 i.on{background:radial-gradient(circle at 35% 30%,#80cbc4,#00695c)}
-.tile.endt{box-shadow:0 2px 0 #b3a97f,0 4px 0 #8f8660,0 7px 10px rgba(0,0,0,.45),0 0 0 2px rgba(245,196,81,.95)}
-.tile.lastp{box-shadow:0 2px 0 #b3a97f,0 4px 0 #8f8660,0 0 0 3px #7dffb2,0 0 18px #7dffb2}
-.hand .tile.endt,.hand .tile.lastp{box-shadow:0 2px 0 #b3a97f,0 4px 0 #8f8660,0 7px 10px rgba(0,0,0,.45)}
-.hand{width:fit-content;max-width:100%;margin:0 auto;gap:6px;padding:24px 12px 14px;border-radius:18px;
- background:linear-gradient(#7b4a22,#59311a);box-shadow:inset 0 6px 10px rgba(0,0,0,.45),0 4px 0 #3d230d,0 8px 14px rgba(0,0,0,.4)}
-.hand .tile.ok{transform:translateY(-14px);box-shadow:0 2px 0 #b3a97f,0 4px 0 #8f8660,0 0 0 3px var(--gold),0 0 20px var(--gold)}
-.status{width:fit-content;max-width:94%;margin:0 auto;padding:8px 20px;border-radius:999px;font-size:15px;
- background:rgba(0,0,0,.32);border:1px solid rgba(255,255,255,.14)}
-.endsinfo{display:flex;justify-content:center;align-items:center;gap:10px;font-size:13px;min-height:28px;opacity:.95}
-.ec{width:26px;height:26px;border-radius:50%;display:inline-grid;place-items:center;font-weight:900;color:#fff;
+.endsinfo{display:flex;justify-content:center;align-items:center;gap:10px;font-size:15px;min-height:30px;opacity:.95}
+.ec{width:34px;height:34px;font-size:19px;border-radius:50%;display:inline-grid;place-items:center;font-weight:900;color:#fff;
  box-shadow:0 2px 4px rgba(0,0,0,.4),inset 0 1px 1px rgba(255,255,255,.4);background:#777}
 .ec.n1{background:#c62828}.ec.n2{background:#1565c0}.ec.n3{background:#2e7d32}
 .ec.n4{background:#e65100}.ec.n5{background:#6a1b9a}.ec.n6{background:#00695c}
-.opp{background:linear-gradient(rgba(255,255,255,.12),rgba(255,255,255,.05))}
-.sc{background:linear-gradient(rgba(0,0,0,.35),rgba(0,0,0,.2))}
+
 a.btn{text-decoration:none;display:inline-flex;align-items:center;gap:4px}
 .btn.wa{background:linear-gradient(#6ff0a0,#25d366);box-shadow:0 4px 0 #148a43,0 8px 16px rgba(0,0,0,.3)}
 .btn.tg{background:linear-gradient(#7fd0ff,#229ed9);box-shadow:0 4px 0 #136a94,0 8px 16px rgba(0,0,0,.3)}
 #wshare .btn{padding:10px 14px;font-size:14px}
 
-.tile{outline:2px solid #1d1d1d;outline-offset:-1px}
-.tile:not(.vert) .bar{width:3px;transform:translateX(-1.5px)}
-.tile.vert .bar{height:3px;transform:translateY(-1.5px)}
-.bar{background:#6b6246}
-.half i{width:80%;height:80%}
-.half i.on{box-shadow:0 0 0 1.5px rgba(0,0,0,.55),inset 0 -1px 1px rgba(255,255,255,.3)}
-.boardwrap{background:radial-gradient(ellipse at 50% 40%,rgba(255,255,255,.05),transparent 60%),radial-gradient(ellipse at center,#15694a 0,#0a4130 70%,#052a1c 100%)}
+#tools{display:flex;gap:10px;justify-content:space-between;align-items:center;flex-wrap:wrap}
+#tools .reacts{padding:0}
+#tools #gvoice .btn{padding:8px 12px;font-size:14px}
+
+/* sticky dock (iOS-safe) */
+#dock{position:sticky;bottom:0;z-index:5;background:#0d3b2c;margin:0 -16px;
+ padding:8px 12px max(10px,env(safe-area-inset-bottom));border-top:3px solid #082a1e;
+ max-height:48vh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+
+/* əl ölçüsü zoom ilə */
 #game .hand{--u:calc(var(--hz,1)*clamp(40px,11vw,66px))}
 @media(min-width:720px){ #game .hand{--u:calc(var(--hz,1)*66px)}}
-.ec{width:34px;height:34px;font-size:19px}
-.endsinfo{font-size:15px}
 .status{font-size:calc(16px + var(--hz,1)*2px)}
+
 .rm{display:flex;align-items:center;gap:10px;background:rgba(0,0,0,.25);border-radius:14px;padding:10px 12px;margin-bottom:8px}
 .rm .nm{flex:1;min-width:0;font-size:14px;line-height:1.4}
 .rm .nm small{opacity:.75;display:block}
 .rm .btn{padding:8px 14px;font-size:14px;flex:none}
 .live{display:inline-block;width:8px;height:8px;border-radius:50%;background:#ff5252;margin-right:5px;animation:blink 1s infinite alternate}
-<<<<<<< HEAD
-
-/* ===== SADƏ DİZAYN ===== */
-body{background:#0d3b2c}
-body:before{display:none}
-#game{gap:8px;padding-bottom:0}
-/* daşlar: ağ fon, qara qalın kontur, iri qara nöqtələr */
-html .tile{background:#fff;outline:3px solid #111;outline-offset:-1px;border-radius:calc(var(--u)*.16);
- box-shadow:0 3px 0 rgba(0,0,0,.35)}
-html .bar{background:#111}
-html .tile:not(.vert) .bar{width:3px;transform:translateX(-1.5px)}
-html .tile.vert .bar{height:3px;transform:translateY(-1.5px)}
-html .bar:after{display:none}
-html .half i{width:78%;height:78%}
-html .half[class] i.on{background:#111;box-shadow:none}
-html .tile.endt{outline-color:#ffb300;box-shadow:0 3px 0 rgba(0,0,0,.35)}
-html .tile.lastp{outline-color:#00c853;box-shadow:0 3px 0 rgba(0,0,0,.35)}
-/* stol */
-html .boardwrap{background:#17694b;border:4px solid #082a1e;border-radius:18px;box-shadow:none;margin:0;padding:12px 6px}
-html .boardwrap:before{display:none}
-.cell.ghost{border-color:#ffb300;background:rgba(255,179,0,.22)}
-.gplus{color:#ffb300}
-/* əlinizdəki daşlar */
-#dock{position:sticky;bottom:0;z-index:5;background:#0d3b2c;margin:0 -16px;padding:8px 12px max(10px,env(safe-area-inset-bottom));
- border-top:3px solid #082a1e;max-height:48vh;overflow-y:auto}
-html #ghand{background:none;box-shadow:none;border-radius:0;padding:14px 0 6px;gap:8px}
-html #ghand .tile.ok{outline:4px solid #ffb300;box-shadow:0 0 0 3px rgba(255,179,0,.5),0 3px 0 rgba(0,0,0,.35);transform:translateY(-10px)}
-html #ghand .tile.dim{filter:none;background:#b9c4bf;opacity:.9}
-html #ghand .tile.sel{transform:translateY(-18px) scale(1.05)}
-/* növbə lövhəsi */
-html .status{background:rgba(0,0,0,.35);color:#fff;border:0;border-radius:12px;width:100%;max-width:100%;
- font-size:18px;font-weight:800;padding:10px 14px}
-html .status.mine{background:#ffb300;color:#111}
-/* oyunçular və xallar */
-html .opp,html .sc{background:#0a2a1f;border:2px solid #25604a;box-shadow:none;animation:none}
-html .opp.turn,html .sc.turn{border-color:#ffb300;background:#3a3410;box-shadow:none;animation:none}
-html .opp.speak{box-shadow:0 0 0 2px #00e676}
-.sc{min-width:110px}.sc b{font-size:24px;color:#ffb300}
-#tools{display:flex;gap:10px;justify-content:space-between;align-items:center;flex-wrap:wrap}
-#tools .reacts{padding:0}.rbtn{width:40px;height:40px;background:#0a2a1f}
-#tools #gvoice .btn{padding:8px 12px;font-size:14px}
-html .endsinfo{font-size:15px;min-height:30px}
-a.btn{text-decoration:none;display:inline-flex;align-items:center;gap:4px}
-.btn.wa{background:linear-gradient(#6ff0a0,#25d366);box-shadow:0 4px 0 #148a43,0 8px 16px rgba(0,0,0,.3)}
-.btn.tg{background:linear-gradient(#7fd0ff,#229ed9);box-shadow:0 4px 0 #136a94,0 8px 16px rgba(0,0,0,.3)}
-#wshare .btn{padding:10px 14px;font-size:14px}
-=======
->>>>>>> parent of e1712eb (Simple high-contrast design, sticky hand dock)
-
-/* ===== KOMPAKT SMAYLIK ===== */
-.reacts{gap:6px;padding:2px 0 0}
-.rbtn{width:36px;height:36px;padding:3px}
-#gvoice .btn{padding:7px 12px;font-size:14px}
 </style>
 </head>
 <body>
@@ -277,7 +192,6 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;gap:4px}
  <div class="code" id="wcode"></div>
  <div class="row"><button class="btn ghost" onclick="copyCode()"><svg class="ic" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h8"/></svg> Kodu kopyala</button></div>
  <div class="row" id="wshare" style="margin-top:14px"></div>
- <div class="row" id="wshare" style="margin-top:14px"></div>
  <div class="plist" id="wlist"></div>
  <p class="sub" id="wcount"></p>
  <button class="btn ghost" style="width:100%" onclick="leave()">Otaqdan çıx</button>
@@ -285,11 +199,12 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;gap:4px}
 
 <section class="screen" id="game">
  <div class="top"><span class="chip" id="ginfo"></span>
-  <div class="row"><button class="chip" id="zoomb" onclick="cycleZoom()" title="Daşları böyüt" style="cursor:pointer;color:#fff;font-weight:800">Aa</button>
-  <button class="chip" id="gshare" onclick="shareLink()" title="Linki paylaş" style="cursor:pointer;color:#fff"></button>
-  <button class="chip" id="gshare" onclick="shareLink()" title="Linki paylaş" style="cursor:pointer;color:#fff"></button>
-  <button class="chip" id="mute" onclick="toggleMute()" style="cursor:pointer;color:#fff">🔊</button>
-  <button class="chip" onclick="if(confirm('Oyundan çıxılsın?'))leave()" style="cursor:pointer;color:#fff"><svg class="ic" viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></svg></button></div></div>
+  <div class="row">
+   <button class="chip" id="zoomb" onclick="cycleZoom()" title="Daşları böyüt" style="cursor:pointer;color:#fff;font-weight:800">Aa</button>
+   <button class="chip" id="gshare" onclick="shareLink()" title="Linki paylaş" style="cursor:pointer;color:#fff"></button>
+   <button class="chip" id="mute" onclick="toggleMute()" style="cursor:pointer;color:#fff">🔊</button>
+   <button class="chip" onclick="if(confirm('Oyundan çıxılsın?'))leave()" style="cursor:pointer;color:#fff"><svg class="ic" viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></svg></button>
+  </div></div>
  <div class="row" id="gvoice"></div>
  <div class="score" id="gscore"></div>
  <div class="opps" id="gopps"></div>
@@ -305,12 +220,28 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center;gap:4px}
 
 <script>
 const $=id=>document.getElementById(id);
-const ICON={"mic": "<svg class=\"ic\" viewBox=\"0 0 24 24\"><rect x=\"9\" y=\"3\" width=\"6\" height=\"11\" rx=\"3\"/><path d=\"M5 11a7 7 0 0 0 14 0M12 18v3\"/></svg>", "micx": "<svg class=\"ic\" viewBox=\"0 0 24 24\"><rect x=\"9\" y=\"3\" width=\"6\" height=\"11\" rx=\"3\"/><path d=\"M5 11a7 7 0 0 0 14 0M12 18v3M3 3l18 18\"/></svg>", "vol": "<svg class=\"ic\" viewBox=\"0 0 24 24\"><path d=\"M4 9h4l5-4v14l-5-4H4z\"/><path d=\"M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11\"/></svg>", "volx": "<svg class=\"ic\" viewBox=\"0 0 24 24\"><path d=\"M4 9h4l5-4v14l-5-4H4z\"/><path d=\"M17 9l5 6M22 9l-5 6\"/></svg>", "close": "<svg class=\"ic\" viewBox=\"0 0 24 24\"><path d=\"M5 5l14 14M19 5L5 19\"/></svg>", "cart": "<svg class=\"ic\" viewBox=\"0 0 24 24\"><circle cx=\"9\" cy=\"20\" r=\"1.5\"/><circle cx=\"18\" cy=\"20\" r=\"1.5\"/><path d=\"M3 4h3l2.5 11h10l2-8H7\"/></svg>", "copy": "<svg class=\"ic\" viewBox=\"0 0 24 24\"><rect x=\"9\" y=\"9\" width=\"11\" height=\"11\" rx=\"2\"/><path d=\"M5 15V6a2 2 0 0 1 2-2h8\"/></svg>", "users": "<svg class=\"ic\" viewBox=\"0 0 24 24\"><circle cx=\"9\" cy=\"8\" r=\"3.5\"/><path d=\"M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6.5 6.5 0 0 1 3.5 6\"/></svg>", "trophy": "<svg class=\"ic\" viewBox=\"0 0 24 24\"><path d=\"M8 4h8v6a4 4 0 0 1-8 0zM8 6H4v1a4 4 0 0 0 4 4M16 6h4v1a4 4 0 0 1-4 4M12 14v4M8 21h8\"/></svg>", "headset": "<svg class=\"ic\" viewBox=\"0 0 24 24\"><path d=\"M4 14v-2a8 8 0 0 1 16 0v2\"/><rect x=\"3\" y=\"14\" width=\"4\" height=\"6\" rx=\"1.5\"/><rect x=\"17\" y=\"14\" width=\"4\" height=\"6\" rx=\"1.5\"/></svg>"};
+const ICON={
+ "mic":'<svg class="ic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>',
+ "micx":'<svg class="ic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M3 3l18 18"/></svg>',
+ "vol":'<svg class="ic" viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg>',
+ "volx":'<svg class="ic" viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M17 9l5 6M22 9l-5 6"/></svg>',
+ "close":'<svg class="ic" viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></svg>',
+ "cart":'<svg class="ic" viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M3 4h3l2.5 11h10l2-8H7"/></svg>',
+ "copy":'<svg class="ic" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h8"/></svg>',
+ "users":'<svg class="ic" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6.5 6.5 0 0 1 3.5 6"/></svg>',
+ "trophy":'<svg class="ic" viewBox="0 0 24 24"><path d="M8 4h8v6a4 4 0 0 1-8 0zM8 6H4v1a4 4 0 0 0 4 4M16 6h4v1a4 4 0 0 1-4 4M12 14v4M8 21h8"/></svg>',
+ "headset":'<svg class="ic" viewBox="0 0 24 24"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><rect x="3" y="14" width="4" height="6" rx="1.5"/><rect x="17" y="14" width="4" height="6" rx="1.5"/></svg>',
+ "share":'<svg class="ic" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.6l6.8-4M8.6 13.4l6.8 4"/></svg>',
+ "eye":'<svg class="ic" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>'
+};
+
 const sock=io({transports:['websocket','polling']});
 let ME=null,S=null,sel=null,lastMid=0,lastTurnMine=false,muted=localStorage.mute==='1';
 let CLIENT_ID='';
+let VS=new Set();               // ← hoisting riski həll edildi
+let lastResultId=null;          // ← showResult təkrar render qarşısı
 
-/* ---------- SƏS (WebAudio, fayl lazım deyil) ---------- */
+/* ---------- SƏS ---------- */
 let AC;
 function ac(){AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();return AC}
 function tone(f,d,type='sine',v=.2,t0=0,f2){if(muted)return;const a=ac(),o=a.createOscillator(),g=a.createGain(),t=a.currentTime+t0;
@@ -365,64 +296,77 @@ const PIPS={0:[],1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,
 const half=n=>`<div class="half n${n}">${[...Array(9)].map((_,i)=>`<i class="${PIPS[n].includes(i)?'on':''}"></i>`).join('')}</div>`;
 const tile=(a,b,cls='')=>`<div class="tile ${cls}" data-a="${a}" data-b="${b}">${half(a)}<span class="bar"></span>${half(b)}</div>`;
 
-/* ---------- OYUN ---------- */
+/* ---------- OYUN STATE ---------- */
 sock.on('state',s=>{const prev=S;S=s;VS=new Set(s.voice||[]);syncPeers();
  if(!s.game){show('wait');renderWait();return}
  show('game');const g=s.game;
  if(!prev||!prev.game||g.round!==prev.game.round)sel=null;
  if(g.msg&&g.msg.id!==lastMid){lastMid=g.msg.id;const k=g.msg.kind;
   if(k==='play')SND.place();else if(k==='draw')SND.draw();else if(k==='pass')SND.pass();
-  else if(k==='start')SND.deal();else if(k==='end'){const mine=g.n===4?g.msg.seat%2===s.seat%2:g.msg.seat===s.seat;
-   if(!s.spec)if(!s.spec)setTimeout(()=>mine?SND.win():SND.lose(),250)}}
+  else if(k==='start')SND.deal();
+  else if(k==='end'){
+    const mine=g.n===4?g.msg.seat%2===s.seat%2:g.msg.seat===s.seat;
+    if(!s.spec)setTimeout(()=>mine?SND.win():SND.lose(),250);
+  }}
  const mine=g.turn===s.seat&&!g.result;
  if(mine&&!lastTurnMine)setTimeout(SND.turn,200);lastTurnMine=mine;
  renderGame()});
 
 function renderWait(){$('wcode').textContent=S.code;
- $('wlist').innerHTML=S.players.map(p=>`<div class="p"><div class="av" id="" style="${p.pic?`background-image:url(${p.pic})`:''}">${p.pic?'':p.name[0].toUpperCase()}</div>${p.name}</div>`).join('');
+ $('wlist').innerHTML=S.players.map(p=>`<div class="p"><div class="av" style="${p.pic?`background-image:url(${p.pic})`:''}">${p.pic?'':p.name[0].toUpperCase()}</div>${p.name}</div>`).join('');
  $('wcount').textContent=`Gözlənilir… ${S.players.length}/${S.n}`}
 
-const nm=i=>S.players[i].name;
-function renderGame(){const g=S.game,me=S.seat;
+const nm=i=>S.players[i]?S.players[i].name:'?';
+
+function renderGame(){
+ const g=S.game,me=S.seat;
  $('ginfo').textContent=`Əl ${g.round} · Bazar: ${g.n===4?'yoxdur':g.market+' daş'} · Otaq ${S.code}`;
- // xallar
  const teams=g.n===4;
  $('gscore').innerHTML=g.score.map((sc,i)=>{
   const label=teams?`${nm(i)} + ${nm(i+2)}`:nm(i);const isMe=teams?i===me%2:i===me;
   const turn=!g.result&&(teams?g.turn%2===i:g.turn===i);
   return `<div class="sc ${isMe?'me':''} ${turn?'turn':''}"><small>${label}${isMe?' (siz)':''}</small><br><b>${sc}</b><small> / ${g.win}</small>
   <div class="bar2"><i style="width:${Math.min(100,sc/g.win*100)}%"></i></div></div>`}).join('');
- // rəqiblər
  $('gopps').innerHTML=S.players.map((p,i)=>i===me?'':`<div class="opp ${g.turn===i&&!g.result?'turn':''}" data-seat="${i}">
   <div class="av" style="${p.pic?`background-image:url(${p.pic})`:''}">${p.pic?'':p.name[0].toUpperCase()}</div>
   <div><b>${p.name}</b> ${teams&&i%2===me%2?'<span class="tag">tərəfdaş</span>':''}<br><div class="backs">${'<i></i>'.repeat(g.counts[i])}</div></div>${voiceBtn(i)}</div>`).join('');
- // stol
+
  renderBoard(g);
- // vəziyyət
+
  const mine=g.turn===me&&!g.result;
  let st=g.result?'Əl bitdi':mine?'Sizin növbəniz':`${nm(g.turn)} düşünür…`;
  if(mine&&!g.board.length&&g.must)st=`${g.must[0]}-${g.must[1]} daşı ilə başlayın`;
  if(mine&&!g.board.length&&!g.must)st='İstədiyiniz daşla başlayın';
- const m=g.msg;if(m&&!g.result){if(m.kind==='pass')st=`${nm(m.seat)} pas keçdi · `+st;
+ const m=g.msg;if(m&&!g.result){
+  if(m.kind==='pass')st=`${nm(m.seat)} pas keçdi · `+st;
   if(m.kind==='draw'&&m.seat!==me)st=`${nm(m.seat)} bazara getdi · `+st}
  if(sel&&mine)st='Daş iki ucda uyğundur — + işarəsinə basın';
  $('gstatus').textContent=st;
- // əməllər
+ $('gstatus').classList.toggle('mine',!!mine);
+
  let act='';
- if(sel&&mine){const [L,R]=g.ends;act=`<button class="btn ghost" onclick="sel=null;renderGame()">Ləğv</button>`}
- else if(g.n<4&&g.board.length)act=`<button class="btn" ${g.can_draw?'':'disabled'} onclick="sock.emit('draw')">${ICON.cart} Bazar (${g.market}${g.n===2?' · cüt':''})</button>`;
+ if(sel&&mine){act=`<button class="btn ghost" onclick="sel=null;renderGame()">Ləğv</button>`}
+ else if(g.n<4&&g.board.length){act=`<button class="btn" ${g.can_draw?'':'disabled'} onclick="sock.emit('draw')">${ICON.cart} Bazar (${g.market}${g.n===2?' · cüt':''})</button>`}
  $('gact').innerHTML=act;
- // əl
- $('ghand').innerHTML=g.hand.map(([a,b])=>{const ok=g.playable.some(t=>t[0]===a&&t[1]===b);
+
+ $('ghand').innerHTML=g.hand.map(([a,b])=>{
+  const ok=g.playable.some(t=>t[0]===a&&t[1]===b);
   const s=sel&&sel[0]===a&&sel[1]===b;
   return tile(a,b,`vert ${ok?'ok':mine?'dim':''} ${s?'sel':''}`)}).join('');
  document.querySelectorAll('#ghand .tile').forEach(el=>el.onclick=()=>clickTile(+el.dataset.a,+el.dataset.b));
- // nəticə
+
  renderVoice();applySpeak();
- if(g.result)showResult(g);else $('modal').classList.remove('on');
+
+ if(g.result){
+  const rid=g.over+'|'+g.result.winner+'|'+g.result.points+'|'+g.msg?.id;
+  if(lastResultId!==rid){lastResultId=rid;showResult(g);}
+ }else{
+  lastResultId=null;
+  $('modal').classList.remove('on');
+ }
 }
 
-
+/* ---------- STOL DİZAYNI ---------- */
 function layoutBoard(board,origin,cap,gd){
  const P=1.5,dbl={},out=[];
  const clash=(r,x)=>[r-1,r+1].some(q=>(dbl[q]||[]).some(([a,b])=>x<b&&x+1>a));
@@ -447,6 +391,7 @@ function layoutBoard(board,origin,cap,gd){
  let gl=null,gr=null;
  if(gd===true||gd===false){gr=step({...R},gd,true);if(gr.v&&!gr.t)reg(R.r,gr.x);gl=step({...L},gd,true)}
  return {items:out,gl,gr}}
+
 function renderBoard(g){
  const bd=$('gboard');
  if(!g.board.length){bd.style.cssText='';bd.innerHTML='<span style="opacity:.5;font-size:18px">Stol boşdur</span>';return}
@@ -467,18 +412,37 @@ function renderBoard(g){
  bd.style.cssText=`--u:${u}px;position:relative;display:block;flex:none;width:${cap*u}px;height:${(maxY-minY)*u+pad*2}px`;
  bd.innerHTML=out;
  if(g.msg&&g.msg.kind==='play'){const k=g.msg.tile;
-  bd.querySelectorAll('.tile').forEach(c=>{if([+c.dataset.a,+c.dataset.b].sort().join()===k.join())c.classList.add('pop')})}
+  bd.querySelectorAll('.tile').forEach(c=>{
+   if([+c.dataset.a,+c.dataset.b].sort().join()===k.join())c.classList.add('pop')})}
+
+ // açıq uclar + endt/lastp
+ const T=[...bd.querySelectorAll('.cell:not(.ghost) .tile')],ge=$('gends');
+ if(ge)ge.innerHTML=g.ends?`Açıq uclar <span class="ec n${g.ends[0]}">${g.ends[0]}</span><span style="opacity:.5">—</span><span class="ec n${g.ends[1]}">${g.ends[1]}</span>`:'';
+ {const f=bd.querySelector('.cell[data-i="0"] .tile'),l=bd.querySelector('.cell[data-i="'+(g.board.length-1)+'"] .tile');f&&f.classList.add('endt');l&&l.classList.add('endt')}
+ if(g.msg&&g.msg.kind==='play'){const k=g.msg.tile.join();
+  T.forEach(t=>{if([+t.dataset.a,+t.dataset.b].sort().join()===k)t.classList.add('lastp')})}
 }
 window.addEventListener('resize',()=>{if(S&&S.game)renderBoard(S.game)});
 
-function clickTile(a,b){const g=S.game;if(g.turn!==S.seat||g.result)return;ac();
+function clickTile(a,b){
+ const g=S.game;
+ if(!S||!g||g.turn!==S.seat||g.result)return;
+ ac();
  if(!g.playable.some(t=>t[0]===a&&t[1]===b)){SND.err();return toast('Bu daşı qoymaq olmur')}
- if(!g.board.length)return sock.emit('play',{tile:[a,b],side:'R'});
+ if(!g.board.length){sel=null;return sock.emit('play',{tile:[a,b],side:'R'})}
  const [L,R]=g.ends,cl=a===L||b===L,cr=a===R||b===R;
- if(cl&&cr&&L!==R){sel=[a,b];renderGame()}else sock.emit('play',{tile:[a,b],side:cr?'R':'L'})}
-function put(side){const t=sel;sel=null;sock.emit('play',{tile:t,side})}
+ if(cl&&cr&&L!==R){sel=[a,b];renderGame()}
+ else{sel=null;sock.emit('play',{tile:[a,b],side:cr?'R':'L'})}
+}
+function put(side){
+ if(!sel)return;
+ const t=sel;sel=null;
+ sock.emit('play',{tile:t,side});
+}
 
-function showResult(g){const r=g.result,teams=g.n===4,me=S.seat;
+/* ---------- NƏTİCƏ ---------- */
+function showResult(g){
+ const r=g.result,teams=g.n===4,me=S.seat;
  const win=teams?r.winner%2===me%2:r.winner===me;
  let h=`<div class="big">${g.over?(win?ICON.trophy+' QALİBSİNİZ!':'Oyun bitdi'):win?'Əli qazandınız':'Əl bitdi'}</div>
  <p>${r.blocked?'Oyun bağlandı (balıq). ':''}<b>${nm(r.winner)}</b>${teams?' komandası':''} <b style="color:var(--gold)">+${r.points}</b> xal qazandı</p><div style="margin:12px 0">`;
@@ -487,7 +451,9 @@ function showResult(g){const r=g.result,teams=g.n===4,me=S.seat;
  if(g.over){let best=g.score.indexOf(Math.max(...g.score));
   h+=`<p style="margin-bottom:12px">Qalib: <b>${teams?nm(best)+' + '+nm(best+2):nm(best)}</b></p><div class="row"><button class="btn" onclick="sock.emit('rematch')">Yenidən</button><button class="btn ghost" onclick="leave()">Çıx</button></div>`}
  else h+=`<button class="btn" onclick="sock.emit('next')">Növbəti əl ▶</button>`;
- $('mbody').innerHTML=h;$('modal').classList.add('on')}
+ $('mbody').innerHTML=h;
+ $('modal').classList.add('on');
+}
 
 /* ---------- REAKSİYALAR ---------- */
 const RL=['Gülüş','Kədər','Düşünürəm','Əla oyun','Tez ol'];
@@ -510,11 +476,11 @@ function fx(type,f,f2,d,t0,v,ft,ff){if(muted)return;const a=ac(),o=a.createOscil
  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(v,t+.03);g.gain.exponentialRampToValueAtTime(.001,t+d);
  o.connect(fl).connect(g).connect(a.destination);o.start(t);o.stop(t+d+.02)}
 function playSynth(k){
- if(k===0){for(let i=0;i<6;i++)fx('sawtooth',360-i*14,300-i*14,.13,i*.15,.3,'bandpass',900+i*20)}          // ha-ha-ha
- else if(k===1){[[311,294,0],[294,277,.55],[277,262,1.1],[247,185,1.65]].forEach(([a,b,t])=>fx('sawtooth',a,b,t>1.5?.9:.5,t,.22,'lowpass',500))} // kədər: "wah wah wah waaah"
- else if(k===2){fx('sawtooth',196,230,.5,0,.2,'lowpass',420);fx('sawtooth',250,340,.4,.6,.2,'lowpass',520)}   // hmm...?
- else if(k===3){for(let i=0;i<70;i++)noise(.03+Math.random()*.05,.06+Math.random()*.12,Math.random()*1.9);tone(784,.3,'triangle',.08,.0)} // alqış
- else{for(let i=0;i<4;i++)noise(.03,.35,i*.2);for(let i=0;i<2;i++){tone(1400,.5,'sine',.22,.85+i*.18);tone(2100,.4,'sine',.08,.85+i*.18)}}} // tez ol: saat + zəng
+ if(k===0){for(let i=0;i<6;i++)fx('sawtooth',360-i*14,300-i*14,.13,i*.15,.3,'bandpass',900+i*20)}
+ else if(k===1){[[311,294,0],[294,277,.55],[277,262,1.1],[247,185,1.65]].forEach(([a,b,t])=>fx('sawtooth',a,b,t>1.5?.9:.5,t,.22,'lowpass',500))}
+ else if(k===2){fx('sawtooth',196,230,.5,0,.2,'lowpass',420);fx('sawtooth',250,340,.4,.6,.2,'lowpass',520)}
+ else if(k===3){for(let i=0;i<70;i++)noise(.03+Math.random()*.05,.06+Math.random()*.12,Math.random()*1.9);tone(784,.3,'triangle',.08,.0)}
+ else{for(let i=0;i<4;i++)noise(.03,.35,i*.2);for(let i=0;i<2;i++){tone(1400,.5,'sine',.22,.85+i*.18);tone(2100,.4,'sine',.08,.85+i*.18)}}}
 
 const RFILES=['laugh.wav','sad.wav','think.mp3','clap.wav','hurry.mp3'];
 function playReact(k){
@@ -532,9 +498,9 @@ sock.on('react',({seat,k})=>{playReact(k);if(!S)return;
  document.body.appendChild(b);setTimeout(()=>b.remove(),2300)});
 
 /* ---------- CANLI SƏS (WebRTC) ---------- */
-const ICE={iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},
- {urls:['turn:openrelay.metered.ca:80','turn:openrelay.metered.ca:443','turn:openrelay.metered.ca:443?transport=tcp'],username:'openrelayproject',credential:'openrelayproject'}]};
-let localStream=null,voiceOn=false,micMuted=false,VS=new Set(),peers={},muteOpp={},SPK={};
+const ICE={iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}]};
+let localStream=null,voiceOn=false,micMuted=false,peers={},muteOpp={},SPK={};
+let lastSpeakKey='';
 async function voiceToggle(){
  if(voiceOn)return stopVoice();
  try{localStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}})}
@@ -548,7 +514,7 @@ function stopVoice(silent){
 function micToggle(){micMuted=!micMuted;localStream&&localStream.getAudioTracks().forEach(t=>t.enabled=!micMuted);renderVoice()}
 function toggleOpp(i){muteOpp[i]=!muteOpp[i];if(peers[i]&&peers[i].audio)peers[i].audio.muted=muteOpp[i];renderGame()}
 function closePeer(seat){const p=peers[seat];if(!p)return;try{p.pc.close()}catch(e){}
- if(p.audio){p.audio.srcObject=null}delete peers[seat];SPK[seat]=false}
+ if(p.audio){p.audio.srcObject=null}delete peers[seat];SPK[seat]=false;applySpeak()}
 function closeAll(){Object.keys(peers).forEach(closePeer)}
 function syncPeers(){Object.keys(peers).forEach(k=>{if(!VS.has(+k))closePeer(k)})}
 function mkPeer(seat,init){
@@ -577,7 +543,11 @@ function watchSpeak(seat,stream){
   const id=setInterval(()=>{if(!peers[seat]){clearInterval(id);SPK[seat]=false;applySpeak();return}
    an.getByteFrequencyData(buf);let m=0;for(const v of buf)m+=v;
    const on=!muteOpp[seat]&&m/buf.length>14;if(SPK[seat]!==on){SPK[seat]=on;applySpeak()}},150)}catch(e){}}
-function applySpeak(){document.querySelectorAll('.opp').forEach(e=>e.classList.toggle('speak',!!SPK[e.dataset.seat]))}
+function applySpeak(){
+ const key=Object.keys(SPK).sort().map(k=>k+':'+(SPK[k]?1:0)).join('|');
+ if(key===lastSpeakKey)return;
+ lastSpeakKey=key;
+ document.querySelectorAll('.opp').forEach(e=>e.classList.toggle('speak',!!SPK[e.dataset.seat]))}
 function voiceBtn(i){if(!VS.has(i))return '';
  return voiceOn?`<button class="spk ${muteOpp[i]?'off':''}" onclick="toggleOpp(${i})" title="Bu oyunçunun səsini aç/bağla">${muteOpp[i]?ICON.volx:ICON.vol}</button>`
   :`<span class="spk" style="opacity:.6">${ICON.mic}</span>`}
@@ -586,19 +556,7 @@ function renderVoice(){const n=VS.size;
   ?`<button class="btn ${micMuted?'ghost':''}" onclick="micToggle()">${micMuted?ICON.micx:ICON.mic} ${micMuted?'Mikrofon bağlı':'Mikrofon açıq'}</button><button class="btn ghost" onclick="voiceToggle()">Səsdən çıx</button>`
   :`<button class="btn" onclick="voiceToggle()">${ICON.headset} Canlı səsə qoşul${n?' ('+n+' nəfər)':''}</button>`}
 
-/* ---------- STOL BƏZƏYİ ---------- */
-const _rb=renderBoard;
-renderBoard=function(g){_rb(g);
- const bd=$('gboard'),T=[...bd.querySelectorAll('.cell:not(.ghost) .tile')],ge=$('gends');
- if(ge)ge.innerHTML=g.ends?`Açıq uclar <span class="ec n${g.ends[0]}">${g.ends[0]}</span><span style="opacity:.5">—</span><span class="ec n${g.ends[1]}">${g.ends[1]}</span>`:'';
- {const f=bd.querySelector('.cell[data-i="0"] .tile'),l=bd.querySelector('.cell[data-i="'+(g.board.length-1)+'"] .tile');f&&f.classList.add('endt');l&&l.classList.add('endt')}
- if(g.msg&&g.msg.kind==='play'){const k=g.msg.tile.join();
-  T.forEach(t=>{if([+t.dataset.a,+t.dataset.b].sort().join()===k)t.classList.add('lastp')})}
-};
-
 /* ---------- LİNK, PAYLAŞMA, İZLƏMƏ ---------- */
-ICON.share='<svg class="ic" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.6l6.8-4M8.6 13.4l6.8 4"/></svg>';
-ICON.eye='<svg class="ic" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
 const QP=new URLSearchParams(location.search);
 let PENDING=QP.get('watch')?{w:1,c:QP.get('watch')}:QP.get('room')?{c:QP.get('room')}:null;
 if(PENDING){$('lerr').style.color='#ffe08a';$('lerr').textContent=PENDING.w?'Oyunu izləmək üçün adınızı yazıb daxil olun':'Otağa qoşulmaq üçün adınızı yazıb daxil olun'}
@@ -616,22 +574,33 @@ function shareHtml(){const t=encodeURIComponent('Dominoya gəl! Kod: '+S.code+' 
  <a class="btn tg" href="https://t.me/share/url?url=${encodeURIComponent(LINK())}&text=${t}" target="_blank" rel="noopener">Telegram</a>
  <button class="btn ghost" onclick="copyText(LINK(),'Dəvət linki kopyalandı')">${ICON.copy} Link</button>
  <button class="btn ghost" onclick="copyText(WLINK(),'İzləmə linki kopyalandı')">${ICON.eye} İzləmə linki</button>`}
+
+/* renderWait / renderGame / showResult override-ları — TƏK yerdə */
 const _rw=renderWait;
-renderWait=function(){_rw();$('wshare').innerHTML=shareHtml();
+renderWait=function(){_rw();
+ if(S)$('wshare').innerHTML=shareHtml();
  $('wcount').textContent+=(S.spec?' · siz izləyicisiniz':'')+(S.watchers?` · izləyici: ${S.watchers}`:'')};
+
 const _rg=renderGame;
-renderGame=function(){_rg();const sp=!!S.spec;
+renderGame=function(){_rg();
+ const sp=!!S.spec;
  $('gshare').innerHTML=ICON.share;
- $('greacts').style.display=sp?'none':'';$('gvoice').style.display=sp?'none':'';$('ghand').style.display=sp?'none':'';
+ $('greacts').style.display=sp?'none':'';
+ $('gvoice').style.display=sp?'none':'';
+ $('ghand').style.display=sp?'none':'';
  if(S.watchers)$('ginfo').textContent+=` · izləyici: ${S.watchers}`;
  if(sp){$('gact').innerHTML='';const g=S.game;
   $('gstatus').textContent=(g.result?'Əl bitdi':nm(g.turn)+' oynayır…')+' · izləyici rejimi'}};
+
 const _sr=showResult;
-showResult=function(g){if(!S.spec)return _sr(g);const r=g.result;
+showResult=function(g){
+ if(!S.spec)return _sr(g);
+ const r=g.result;
  $('mbody').innerHTML=`<div class="big">${g.over?'Oyun bitdi':'Əl bitdi'}</div>
  <p><b>${nm(r.winner)}</b>${g.n===4?' komandası':''} <b style="color:var(--gold)">+${r.points}</b> xal qazandı</p>
  <div class="score" style="margin:12px 0">${g.score.map((x,i)=>`<div class="sc"><small>${g.n===4?nm(i)+' + '+nm(i+2):nm(i)}</small><br><b>${x}</b></div>`).join('')}</div>
- <button class="btn ghost" onclick="leave()">Çıx</button>`;$('modal').classList.add('on')};
+ <button class="btn ghost" onclick="leave()">Çıx</button>`;
+ $('modal').classList.add('on')};
 
 /* ---------- BÖYÜTMƏ ---------- */
 let ZOOM=+localStorage.zoom||1;
@@ -647,66 +616,22 @@ sock.on('left',()=>setTimeout(refreshRooms,250));
 sock.on('rooms',list=>{
  $('rlist').innerHTML=list.length?list.map(r=>{
   const st=r.playing?`<span class="live"></span>Oyun gedir · Əl ${r.round}${r.over?' (bitib)':''}`:`Gözləyir ${r.names.length}/${r.n}`;
-  const sc=r.playing&&r.n<4?' · '+r.score.join(' : '):r.playing?' · '+r.score.join(' : '):'';
+  const sc=r.playing?' · '+r.score.join(' : '):'';
   const btn=r.playing?`<button class="btn" onclick="sock.emit('spectate',{code:'${r.code}'})">İzlə</button>`
    :`<button class="btn ghost" onclick="sock.emit('join',{code:'${r.code}'})">Qoşul</button>`;
   return `<div class="rm"><div class="nm"><b>${r.names.map(n=>n.replace(/</g,'&lt;')).join(', ')}</b>
    <small>${r.code} · ${r.n} nəfər · ${st}${sc}${r.watchers?' · '+r.watchers+' izləyici':''}</small></div>${btn}</div>`}).join('')
   :'<p class="rules" style="text-align:center;margin:0 0 10px">Hazırda aktiv otaq yoxdur</p>'});
-<<<<<<< HEAD
 
-/* ===== SADƏ DİZAYN: bölmələrin yeri ===== */
+/* ---------- SADƏ DİZAYN: bölmələrin yeri ---------- */
 (function(){
  const G=$('game'),q=x=>G.querySelector(x);
  const tools=document.createElement('div');tools.id='tools';
  tools.append($('gvoice'),$('greacts'));
  const dock=document.createElement('div');dock.id='dock';
  dock.append($('gstatus'),$('gact'),$('ghand'));
- // sıra: yuxarı panel, xallar, oyunçular, alətlər, açıq uclar, stol, aşağıda sabit "dock"
  [q('.top'),$('gscore'),$('gopps'),tools,$('gends'),q('.boardwrap'),dock].forEach(e=>G.appendChild(e));
- const _r=renderGame;
- renderGame=function(){_r();const g=S.game;
-  $('gstatus').classList.toggle('mine',!!g&&!S.spec&&g.turn===S.seat&&!g.result)};
 })();
-
-/* ---------- LİNK, PAYLAŞMA, İZLƏMƏ ---------- */
-ICON.share='<svg class="ic" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 10.6l6.8-4M8.6 13.4l6.8 4"/></svg>';
-ICON.eye='<svg class="ic" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
-const QP=new URLSearchParams(location.search);
-let PENDING=QP.get('watch')?{w:1,c:QP.get('watch')}:QP.get('room')?{c:QP.get('room')}:null;
-if(PENDING){$('lerr').style.color='#ffe08a';$('lerr').textContent=PENDING.w?'Oyunu izləmək üçün adınızı yazıb daxil olun':'Otağa qoşulmaq üçün adınızı yazıb daxil olun'}
-sock.on('authed',()=>{if(!PENDING)return;const p=PENDING;PENDING=null;history.replaceState(null,'',location.pathname);
- sock.emit(p.w?'spectate':'enter',{code:p.c})});
-const LINK=()=>location.origin+'/?room='+S.code, WLINK=()=>location.origin+'/?watch='+S.code;
-function copyText(t,msg){const ok=()=>toast(msg||'Kopyalandı');
- if(navigator.clipboard)navigator.clipboard.writeText(t).then(ok,()=>{});
- else{const i=document.createElement('input');i.value=t;document.body.appendChild(i);i.select();document.execCommand('copy');i.remove();ok()}}
-function shareLink(){const d={title:'Domino 101',text:'Dominoya gəl! Otaq kodu: '+S.code,url:LINK()};
- if(navigator.share)navigator.share(d).catch(()=>{});else copyText(LINK(),'Link kopyalandı')}
-function shareHtml(){const t=encodeURIComponent('Dominoya gəl! Kod: '+S.code+' ');
- return `<button class="btn" onclick="shareLink()">${ICON.share} Paylaş</button>
- <a class="btn wa" href="https://wa.me/?text=${t}${encodeURIComponent(LINK())}" target="_blank" rel="noopener">WhatsApp</a>
- <a class="btn tg" href="https://t.me/share/url?url=${encodeURIComponent(LINK())}&text=${t}" target="_blank" rel="noopener">Telegram</a>
- <button class="btn ghost" onclick="copyText(LINK(),'Dəvət linki kopyalandı')">${ICON.copy} Link</button>
- <button class="btn ghost" onclick="copyText(WLINK(),'İzləmə linki kopyalandı')">${ICON.eye} İzləmə linki</button>`}
-const _rw=renderWait;
-renderWait=function(){_rw();$('wshare').innerHTML=shareHtml();
- $('wcount').textContent+=(S.spec?' · siz izləyicisiniz':'')+(S.watchers?` · izləyici: ${S.watchers}`:'')};
-const _rg=renderGame;
-renderGame=function(){_rg();const sp=!!S.spec;
- $('gshare').innerHTML=ICON.share;
- $('greacts').style.display=sp?'none':'';$('gvoice').style.display=sp?'none':'';$('ghand').style.display=sp?'none':'';
- if(S.watchers)$('ginfo').textContent+=` · izləyici: ${S.watchers}`;
- if(sp){$('gact').innerHTML='';const g=S.game;
-  $('gstatus').textContent=(g.result?'Əl bitdi':nm(g.turn)+' oynayır…')+' · izləyici rejimi'}};
-const _sr=showResult;
-showResult=function(g){if(!S.spec)return _sr(g);const r=g.result;
- $('mbody').innerHTML=`<div class="big">${g.over?'Oyun bitdi':'Əl bitdi'}</div>
- <p><b>${nm(r.winner)}</b>${g.n===4?' komandası':''} <b style="color:var(--gold)">+${r.points}</b> xal qazandı</p>
- <div class="score" style="margin:12px 0">${g.score.map((x,i)=>`<div class="sc"><small>${g.n===4?nm(i)+' + '+nm(i+2):nm(i)}</small><br><b>${x}</b></div>`).join('')}</div>
- <button class="btn ghost" onclick="leave()">Çıx</button>`;$('modal').classList.add('on')};
-=======
->>>>>>> parent of e1712eb (Simple high-contrast design, sticky hand dock)
 </script>
 </body>
 </html>
