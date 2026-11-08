@@ -34,11 +34,12 @@ class Game:
 
         True = OK (oyana bilər), False = yenidən qarışdır lazımdır.
 
-        Qaydalar:
-        - 5, 6, 7 dənə eyni rəqəmli daş (qoşa və ya qoşasız) → False
-        - 5, 6, 7 dənə qoşa (müxtəlif rəqəmlər) → False
-        - 4 dənə qoşa → True
-        - 4 dənə eyni rəqəm → True
+        Qaydalar (hər rəqəm 0-6 üçün ayrı-ayrı):
+        - ≤ 4 dənə → OK
+        - 5 dənə + qoşa (x-x) əlindədirsə → OK
+        - 5 dənə + qoşa yoxdursa → yenidən qarışdır
+        - 6, 7 dənə → yenidən qarışdır
+        - Ümumi qoşa sayı 5+ → yenidən qarışdır
         """
         digit_count = {d: 0 for d in range(7)}
         for a, b in hand:
@@ -46,11 +47,15 @@ class Game:
             if b != a:
                 digit_count[b] += 1
 
-        # Qayda 1: hər hansı rəqəm 5+ dəfə gəlirsə → yenidən qarışdır
-        if any(c >= 5 for c in digit_count.values()):
-            return False
+        # Hər rəqəm üçün ayrı-ayrı yoxla
+        for d in range(7):
+            cnt = digit_count[d]
+            if cnt >= 6:                              # 6, 7 dənə → yenidən
+                return False
+            if cnt == 5 and (d, d) not in hand:       # 5 dənə, qoşa yoxdur → yenidən
+                return False
 
-        # Qayda 2: qoşa daşların sayı 5+ → yenidən qarışdır
+        # Ümumi qoşa sayı 5+ → yenidən qarışdır
         doubles = sum(1 for a, b in hand if a == b)
         if doubles >= 5:
             return False
@@ -58,8 +63,13 @@ class Game:
         return True
 
     def _deal(self):
-        """Daşları qarışdır və paylaş. Əllər uyğun deyilsə yenidən qarışdır."""
-        max_attempts = 200
+        """Daşları qarışdır və paylaş. Əllər uyğun deyilsə yenidən qarışdır.
+
+        max_attempts = 500 — kifayət qədər yüksəkdir, praktikada
+        uyğun əl çox tez tapılır (adətən ilk 5-10 cəhddə).
+        """
+        max_attempts = 500
+        hands = market = None
         for _ in range(max_attempts):
             tiles = ALL[:]
             rng.shuffle(tiles)
@@ -68,7 +78,8 @@ class Game:
             # Bütün oyunçuların əllərini yoxla
             if all(self._hand_ok(h) for h in hands):
                 return hands, market
-        # 200 cəhddən sonra da uyğun gəlmədisə — sonuncunu qəbul et
+        # 500 cəhddən sonra da uyğun gəlmədisə — sonuncunu qəbul et
+        # (praktikada bu hal baş vermir, amma sonsuz dövr qorunması)
         return hands, market
 
     # ---------- RAUND BAŞLAT ----------
@@ -115,10 +126,11 @@ class Game:
         return (self.n == 2 and len(self.market) >= 4) or (self.n == 3 and len(self.market) >= 2)
 
     def _settle(self):
+        """Gedişi olmayan və bazara gedə bilməyən oyunçu avtomatik pas keçir."""
         safety = 0
         while not self.result:
             safety += 1
-            if safety > self.n * 4 + 10:
+            if safety > self.n * 4 + 10:      # sonsuz dövr qorunması
                 return self._end(True)
             s = self.turn
             if self.playable(s) or self.can_draw(s):
