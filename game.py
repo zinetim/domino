@@ -3,7 +3,7 @@ import random
 
 rng = random.SystemRandom()
 ALL = [(a, b) for a in range(7) for b in range(a, 7)]
-ORDER = [1, 2, 3, 4, 5, 6, 0]
+ORDER = [1, 2, 3, 4, 5, 6, 0]        # ilk qoşa sırası: 1-1, 2-2, 3-3 ...
 WIN = 101
 norm = lambda t: (min(t), max(t))
 pips = lambda ts: sum(a + b for a, b in ts)
@@ -11,10 +11,8 @@ pips = lambda ts: sum(a + b for a, b in ts)
 
 class Game:
     def __init__(self, n):
-        if n not in (2, 3, 4):
-            raise ValueError("n 2, 3 və ya 4 olmalıdır")
         self.n = n
-        self.score = [0] * (2 if n == 4 else n)
+        self.score = [0] * (2 if n == 4 else n)   # 4 nəfərdə komanda xalı
         self.round = 0
         self.over = False
         self.mid = 0
@@ -33,62 +31,41 @@ class Game:
         rng.shuffle(tiles)
         self.hands = [sorted(tiles[i * 7:(i + 1) * 7]) for i in range(self.n)]
         self.market = tiles[self.n * 7:]
-        self.board = []
-        self.passes = 0
-        self.result = None
-        self.must = None
-        self.nleft = 0
+        self.board, self.passes, self.result, self.must = [], 0, None, None
+        self.nleft = 0                 # soldan əlavə olunan daş sayı (zəncirin başlanğıc daşı)
         self.round += 1
-
         if starter is None:
             for d in ORDER:
                 for s, h in enumerate(self.hands):
                     if (d, d) in h:
-                        self.turn = s
-                        self.must = (d, d)
+                        self.turn, self.must = s, (d, d)
                         break
                 if self.must:
                     break
             if not self.must:
-                b = max(
-                    (a + c, max(a, c), s, (a, c))
-                    for s, h in enumerate(self.hands)
-                    for a, c in h
-                )
-                self.turn = b[2]
-                self.must = b[3]
+                b = max((a + c, max(a, c), s, (a, c))
+                        for s, h in enumerate(self.hands) for a, c in h)
+                self.turn, self.must = b[2], b[3]
         else:
-            self.turn = starter % self.n
-
+            self.turn = starter
         self._say(seat=self.turn, kind="start")
-        # İlk oyunçu heç nə oynaya bilmirsə — avtomatik pas/draw
-        self._settle()
 
     def ends(self):
         return (self.board[0][0], self.board[-1][1]) if self.board else None
 
     def playable(self, s):
-        if s < 0:
-            return []
         if not self.board:
             return [self.must] if self.must else list(self.hands[s])
         L, R = self.ends()
         return [t for t in self.hands[s] if L in t or R in t]
 
     def can_draw(self, s):
-        if s < 0 or not self.board or s != self.turn or self.result:
+        if not self.board or s != self.turn or self.result:
             return False
-        return (self.n == 2 and len(self.market) >= 4) or (
-            self.n == 3 and len(self.market) >= 2
-        )
+        return (self.n == 2 and len(self.market) >= 4) or (self.n == 3 and len(self.market) >= 2)
 
     def _settle(self):
-        """Gedişi olmayan və bazara gedə bilməyən oyunçu avtomatik pas keçir."""
-        safety = 0
         while not self.result:
-            safety += 1
-            if safety > self.n * 4 + 10:
-                return self._end(True)
             s = self.turn
             if self.playable(s) or self.can_draw(s):
                 return
@@ -101,13 +78,9 @@ class Game:
     def play(self, seat, tile, side):
         if self.result or seat != self.turn:
             return "Növbə sizdə deyil"
-        try:
-            t = norm(tuple(tile))
-        except (TypeError, ValueError):
-            return "Yanlış daş formatı"
+        t = norm(tile)
         if t not in self.hands[seat]:
             return "Belə daş yoxdur"
-
         if not self.board:
             if self.must and t != self.must:
                 return f"Oyuna {self.must[0]}-{self.must[1]} daşı ilə başlanmalıdır"
@@ -116,27 +89,19 @@ class Game:
             L, R = self.ends()
             a, b = t
             if side == "L" and L in t:
-                placed = (a, b) if b == L else (b, a)
-                self.board.insert(0, placed)
+                self.board.insert(0, (a, b) if b == L else (b, a))
                 self.nleft += 1
             elif side == "R" and R in t:
-                placed = (a, b) if a == R else (b, a)
-                self.board.append(placed)
+                self.board.append((a, b) if a == R else (b, a))
             else:
                 return "Bu daş ora uyğun gəlmir"
-
         self.hands[seat].remove(t)
-        self.passes = 0
-        self.must = None
+        self.passes, self.must = 0, None
         self._say(seat=seat, kind="play", tile=list(t))
-
         if not self.hands[seat]:
-            self._end(False)
-            return None
-
+            return self._end(False)
         self.turn = (seat + 1) % self.n
         self._settle()
-        return None
 
     def draw(self, seat):
         if not self.can_draw(seat):
@@ -147,23 +112,15 @@ class Game:
         self.hands[seat].sort()
         self._say(seat=seat, kind="draw", k=k)
         self._settle()
-        return None
 
     def _end(self, blocked):
-        if blocked:
-            w = min(range(self.n), key=lambda s: pips(self.hands[s]))
-        else:
-            w = self.turn
+        w = min(range(self.n), key=lambda s: pips(self.hands[s])) if blocked else self.turn
         pts = sum(pips(self.hands[s]) for s in range(self.n) if self.key(s) != self.key(w))
         self.score[self.key(w)] += pts
         if max(self.score) >= WIN:
             self.over = True
-        self.result = {
-            "winner": w,
-            "blocked": blocked,
-            "points": pts,
-            "hands": [list(h) for h in self.hands],
-        }
+        self.result = {"winner": w, "blocked": blocked, "points": pts,
+                       "hands": [list(h) for h in self.hands]}
         self._say(seat=w, kind="end")
 
     def next_round(self):
@@ -171,23 +128,13 @@ class Game:
             self.start_round(self.result["winner"])
 
     def view(self, seat):
-        mine = seat >= 0 and self.turn == seat and not self.result
+        mine = self.turn == seat and not self.result
         return {
-            "n": self.n,
-            "hand": self.hands[seat] if seat >= 0 else [],
+            "n": self.n, "hand": self.hands[seat] if seat >= 0 else [],
             "counts": [len(h) for h in self.hands],
-            "board": self.board,
-            "origin": self.nleft,
-            "ends": self.ends(),
-            "turn": self.turn,
-            "market": len(self.market),
-            "score": self.score,
-            "round": self.round,
-            "can_draw": self.can_draw(seat),
-            "playable": self.playable(seat) if mine else [],
-            "must": self.must,
-            "msg": self.msg,
-            "result": self.result,
-            "over": self.over,
-            "win": WIN,
+            "board": self.board, "origin": self.nleft, "ends": self.ends(), "turn": self.turn,
+            "market": len(self.market), "score": self.score, "round": self.round,
+            "can_draw": self.can_draw(seat), "playable": self.playable(seat) if mine else [],
+            "must": self.must, "msg": self.msg, "result": self.result,
+            "over": self.over, "win": WIN,
         }
