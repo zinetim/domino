@@ -1,4 +1,4 @@
-"""xnxx 101 oyun məntiqi (2, 3 və 4 nəfər)."""
+"""Domino 101 oyun məntiqi (2, 3 və 4 nəfər)."""
 import random
 
 rng = random.SystemRandom()
