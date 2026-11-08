@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Domino 101</title>
+<title>xnxx 101</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect x=%2225%22 y=%2210%22 width=%2250%22 height=%2280%22 rx=%2210%22 fill=%22white%22 stroke=%22black%22 stroke-width=%225%22/><circle cx=%2250%22 cy=%2230%22 r=%227%22/><circle cx=%2250%22 cy=%2270%22 r=%227%22/></svg>">
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -322,9 +322,9 @@ const LINK=()=>location.origin+'/?room='+S.code,WLINK=()=>location.origin+'/?wat
 function copyText(t,msg){const ok=()=>toast(msg||'Kopyalandı');
  if(navigator.clipboard)navigator.clipboard.writeText(t).then(ok,()=>{});
  else{const i=document.createElement('input');i.value=t;document.body.appendChild(i);i.select();document.execCommand('copy');i.remove();ok()}}
-function shareLink(){const d={title:'Domino 101',text:'Dominoya gəl! Otaq kodu: '+S.code,url:LINK()};
+function shareLink(){const d={title:'xnxx 101',text:'xnxxa gəl! Otaq kodu: '+S.code,url:LINK()};
  if(navigator.share)navigator.share(d).catch(()=>{});else copyText(LINK(),'Link kopyalandı')}
-function shareHtml(){const t=encodeURIComponent('Dominoya gəl! Kod: '+S.code+' ');
+function shareHtml(){const t=encodeURIComponent('xnxxa gəl! Kod: '+S.code+' ');
  return `<button class="btn" onclick="shareLink()">${ICON.share} Paylaş</button>
  <a class="btn wa" href="https://wa.me/?text=${t}${encodeURIComponent(LINK())}" target="_blank" rel="noopener">WhatsApp</a>
  <a class="btn tg" href="https://t.me/share/url?url=${encodeURIComponent(LINK())}&text=${t}" target="_blank" rel="noopener">Telegram</a>

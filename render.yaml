@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: domino-101
+    name: xnxx-101
     runtime: python
     plan: free
     buildCommand: pip install -r requirements.txt
