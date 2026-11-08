@@ -11,6 +11,8 @@ pips = lambda ts: sum(a + b for a, b in ts)
 
 class Game:
     def __init__(self, n):
+        if n not in (2, 3, 4):
+            raise ValueError("n 2, 3 və ya 4 olmalıdır")
         self.n = n
         self.score = [0] * (2 if n == 4 else n)   # 4 nəfərdə komanda xalı
         self.round = 0
@@ -26,15 +28,58 @@ class Game:
         self.mid += 1
         self.msg = dict(kw, id=self.mid)
 
+    # ---------- YENİ: əl yoxlaması ----------
+    def _hand_ok(self, hand):
+        """Bir oyunçunun əlindəki daşlar üçün yoxlama.
+
+        True = OK (oyana bilər), False = yenidən qarışdır lazımdır.
+
+        Qaydalar:
+        - 5, 6, 7 dənə eyni rəqəmli daş (qoşa və ya qoşasız) → False
+        - 5, 6, 7 dənə qoşa (müxtəlif rəqəmlər) → False
+        - 4 dənə qoşa → True
+        - 4 dənə eyni rəqəm → True
+        """
+        digit_count = {d: 0 for d in range(7)}
+        for a, b in hand:
+            digit_count[a] += 1
+            if b != a:
+                digit_count[b] += 1
+
+        # Qayda 1: hər hansı rəqəm 5+ dəfə gəlirsə → yenidən qarışdır
+        if any(c >= 5 for c in digit_count.values()):
+            return False
+
+        # Qayda 2: qoşa daşların sayı 5+ → yenidən qarışdır
+        doubles = sum(1 for a, b in hand if a == b)
+        if doubles >= 5:
+            return False
+
+        return True
+
+    def _deal(self):
+        """Daşları qarışdır və paylaş. Əllər uyğun deyilsə yenidən qarışdır."""
+        max_attempts = 200
+        for _ in range(max_attempts):
+            tiles = ALL[:]
+            rng.shuffle(tiles)
+            hands = [sorted(tiles[i * 7:(i + 1) * 7]) for i in range(self.n)]
+            market = tiles[self.n * 7:]
+            # Bütün oyunçuların əllərini yoxla
+            if all(self._hand_ok(h) for h in hands):
+                return hands, market
+        # 200 cəhddən sonra da uyğun gəlmədisə — sonuncunu qəbul et
+        return hands, market
+
+    # ---------- RAUND BAŞLAT ----------
     def start_round(self, starter):
-        tiles = ALL[:]
-        rng.shuffle(tiles)
-        self.hands = [sorted(tiles[i * 7:(i + 1) * 7]) for i in range(self.n)]
-        self.market = tiles[self.n * 7:]
+        self.hands, self.market = self._deal()
         self.board, self.passes, self.result, self.must = [], 0, None, None
         self.nleft = 0                 # soldan əlavə olunan daş sayı (zəncirin başlanğıc daşı)
         self.round += 1
+
         if starter is None:
+            # İlk əl: ən kiçik qoşa ilə başlanır
             for d in ORDER:
                 for s, h in enumerate(self.hands):
                     if (d, d) in h:
@@ -43,29 +88,38 @@ class Game:
                 if self.must:
                     break
             if not self.must:
+                # Heç kimdə qoşa yoxdursa — ən böyük daş
                 b = max((a + c, max(a, c), s, (a, c))
                         for s, h in enumerate(self.hands) for a, c in h)
                 self.turn, self.must = b[2], b[3]
         else:
-            self.turn = starter
+            self.turn = starter % self.n
+
         self._say(seat=self.turn, kind="start")
+        self._settle()
 
     def ends(self):
         return (self.board[0][0], self.board[-1][1]) if self.board else None
 
     def playable(self, s):
+        if s < 0:
+            return []
         if not self.board:
             return [self.must] if self.must else list(self.hands[s])
         L, R = self.ends()
         return [t for t in self.hands[s] if L in t or R in t]
 
     def can_draw(self, s):
-        if not self.board or s != self.turn or self.result:
+        if s < 0 or not self.board or s != self.turn or self.result:
             return False
         return (self.n == 2 and len(self.market) >= 4) or (self.n == 3 and len(self.market) >= 2)
 
     def _settle(self):
+        safety = 0
         while not self.result:
+            safety += 1
+            if safety > self.n * 4 + 10:
+                return self._end(True)
             s = self.turn
             if self.playable(s) or self.can_draw(s):
                 return
@@ -78,7 +132,10 @@ class Game:
     def play(self, seat, tile, side):
         if self.result or seat != self.turn:
             return "Növbə sizdə deyil"
-        t = norm(tile)
+        try:
+            t = norm(tuple(tile))
+        except (TypeError, ValueError):
+            return "Yanlış daş formatı"
         if t not in self.hands[seat]:
             return "Belə daş yoxdur"
         if not self.board:
@@ -99,9 +156,11 @@ class Game:
         self.passes, self.must = 0, None
         self._say(seat=seat, kind="play", tile=list(t))
         if not self.hands[seat]:
-            return self._end(False)
+            self._end(False)
+            return None
         self.turn = (seat + 1) % self.n
         self._settle()
+        return None
 
     def draw(self, seat):
         if not self.can_draw(seat):
@@ -112,6 +171,7 @@ class Game:
         self.hands[seat].sort()
         self._say(seat=seat, kind="draw", k=k)
         self._settle()
+        return None
 
     def _end(self, blocked):
         w = min(range(self.n), key=lambda s: pips(self.hands[s])) if blocked else self.turn
@@ -128,7 +188,7 @@ class Game:
             self.start_round(self.result["winner"])
 
     def view(self, seat):
-        mine = self.turn == seat and not self.result
+        mine = seat >= 0 and self.turn == seat and not self.result
         return {
             "n": self.n, "hand": self.hands[seat] if seat >= 0 else [],
             "counts": [len(h) for h in self.hands],
