@@ -156,7 +156,8 @@ button.chip{cursor:pointer}
   <b>2 nəfər:</b> bazardan yalnız cüt daş, bazarda son 2 daş qalır.<br>
   <b>3 nəfər:</b> tək-tək çəkilir, bazarda son 1 daş qalır.<br>
   <b>4 nəfər:</b> bazar yoxdur, qarşı-qarşıya oturanlar cütdür (xallar birlikdə).<br>
-  Hər kəsdə 7 daş. Ən kiçik qoşa (1-1, 2-2…) ilə başlanır, sonra əli bitirən başlayır.
+  Hər kəsdə 7 daş. Ən kiçik qoşa (1-1, 2-2…) ilə başlanır, sonra əli bitirən başlayır.<br>
+  <b>Qarışdırma qaydası:</b> bir rəqəm 5+ dəfə (qoşasız) və ya 6+ dəfə (qoşalı) gələrsə; 5+ qoşa gələrsə — yenidən qarışdırılır.
  </div>
 </div></section>
 
@@ -214,6 +215,7 @@ $('gshare').innerHTML=ICON.share;$('gexit').innerHTML=ICON.close;
 const sock=io({transports:['websocket','polling']});
 let ME=null,S=null,sel=null,lastMid=0,lastMine=false,popId=0,PENDING=null;
 let muted=localStorage.mute==='1',ZOOM=+localStorage.zoom||1;
+let lastResultKey='',lastSpeakKey='';
 $('mute').innerHTML=muted?ICON.volx:ICON.vol;
 
 /* ---------- SƏS ---------- */
@@ -240,10 +242,23 @@ function toggleMute(){muted=!muted;localStorage.mute=muted?'1':'0';$('mute').inn
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id))}
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('on'),2600)}
 function setMsg(m,ok){const e=$('lerr');e.style.color=ok?'#ffe08a':'#ffb4ab';e.textContent=m||''}
-function guest(){const n=$('gname').value.trim();if(!n)return setMsg('Ad yazın');
- localStorage.gname=n;localStorage.gid=localStorage.gid||Math.random().toString(36).slice(2,12);localStorage.removeItem('cred');ac();
- if(!sock.connected)setMsg('Server oyanır, 30–60 saniyə gözləyin…',1);
- sock.emit('auth',{name:n,gid:localStorage.gid})}
+
+/* PATCH 1: guest() — socket bağlı deyilsə connect-i gözlə */
+function guest(){
+ const n=$('gname').value.trim();
+ if(!n)return setMsg('Ad yazın');
+ localStorage.gname=n;
+ localStorage.gid=localStorage.gid||Math.random().toString(36).slice(2,12);
+ localStorage.removeItem('cred');
+ ac();
+ const send=()=>sock.emit('auth',{name:n,gid:localStorage.gid});
+ if(!sock.connected){
+  setMsg('Server oyanır, 30–60 saniyə gözləyin…',1);
+  sock.once('connect',send);
+  return;
+ }
+ send();
+}
 function logout(){localStorage.removeItem('cred');localStorage.removeItem('gname');location.href=location.pathname}
 function onGoogle(r){localStorage.cred=r.credential;ac();sock.emit('auth',{credential:r.credential})}
 fetch('/config').then(r=>r.json()).then(c=>{
@@ -266,9 +281,27 @@ sock.on('authed',u=>{ME=u;setMsg('');avatar($('lav'),u);$('lname').textContent=u
  if(PENDING){const p=PENDING;PENDING=null;history.replaceState(null,'',location.pathname);sock.emit(p.w?'spectate':'enter',{code:p.c})}
  setTimeout(refreshRooms,250)});
 sock.on('err',m=>{toast(m);SND.err()});
-sock.on('left',()=>{stopVoice(true);S=null;$('modal').classList.remove('on');show('lobby');setTimeout(refreshRooms,250)});
-sock.on('closed',m=>{stopVoice(true);S=null;$('modal').classList.remove('on');toast(m);show('lobby');setTimeout(refreshRooms,250)});
-function avatar(el,p){el.textContent=p.pic?'':(p.name||'?')[0].toUpperCase();el.style.backgroundImage=p.pic?`url(${p.pic})`:''}
+
+/* PATCH 4: left/closed zamanı voice emit */
+sock.on('left',()=>{
+ if(voiceOn){voiceOn=false;sock.emit('voice',{on:false})}
+ stopVoice(true);S=null;$('modal').classList.remove('on');show('lobby');setTimeout(refreshRooms,250);
+});
+sock.on('closed',m=>{
+ if(voiceOn){voiceOn=false;sock.emit('voice',{on:false})}
+ stopVoice(true);S=null;$('modal').classList.remove('on');toast(m);show('lobby');setTimeout(refreshRooms,250);
+});
+
+/* PATCH 2: avatar() — şəkil yüklənmirsə fallback */
+function avatar(el,p){
+ el.style.backgroundImage='';
+ el.textContent=(p.name||'?')[0].toUpperCase();
+ if(p.pic){
+  const img=new Image();
+  img.onload=()=>{el.style.backgroundImage=`url(${p.pic})`;el.textContent='';};
+  img.src=p.pic;
+ }
+}
 const avHtml=p=>`<div class="av" style="${p.pic?`background-image:url(${esc(p.pic)})`:''}">${p.pic?'':esc(p.name[0].toUpperCase())}</div>`;
 
 /* ---------- LOBBİ ---------- */
@@ -332,11 +365,12 @@ function layoutBoard(board,origin,cap,gd){
  if(gd===true||gd===false){gr=step({...R},gd,true);if(gr.v&&!gr.t)reg(R.r,gr.x);gl=step({...L},gd,true)}
  return {items:out,gl,gr}}
 
+/* PATCH 6 + 8: renderBoard — lastp/endt inline, W ölçü düzəlişi */
 function renderBoard(g){
  const bd=$('gboard'),ge=$('gends');
  ge.innerHTML=g.ends?`Açıq uclar <span class="ec n${g.ends[0]}">${g.ends[0]}</span><span style="opacity:.5">—</span><span class="ec n${g.ends[1]}">${g.ends[1]}</span>`:'';
  if(!g.board.length){bd.style.cssText='';bd.innerHTML='<span style="opacity:.5;font-size:18px">Stol boşdur</span>';return}
- const W=Math.max(240,bd.parentElement.clientWidth-40);
+ const W=Math.max(240,Math.floor(bd.parentElement.getBoundingClientRect().width)-56);
  const cap=Math.max(7,Math.round((W<400?8:W<560?10:W<900?14:16)/ZOOM));
  const u=Math.max(16,Math.min(Math.round(60*ZOOM),Math.floor(W/cap)));
  const mine=g.turn===S.seat&&!g.result,show=!!sel&&mine;
@@ -346,17 +380,21 @@ function renderBoard(g){
  const minY=Math.min(...all.map(p=>p.y)),maxY=Math.max(...all.map(p=>p.y+p.h)),pad=6;
  const cell=(p,html,cls,attr)=>`<div class="cell ${cls||''}" ${attr||''} style="left:${p.x*u}px;top:${(p.y-minY)*u+pad}px;width:${p.w*u}px;height:${p.h*u}px">${html}</div>`;
  const plus='<b class="gplus">+</b>';
+ const lastKey=(g.msg&&g.msg.kind==='play')?g.msg.tile.slice().sort().join():null;
+ const showPop=lastKey&&g.msg.id!==popId;
  let out=L.items.map(p=>{
-  const html=p.v?(p.t&&p.s<0?tile(p.b,p.a,'vert'):tile(p.a,p.b,'vert')):(p.dir>0?tile(p.a,p.b):tile(p.b,p.a));
+  const isLast=lastKey&&[p.a,p.b].sort().join()===lastKey;
+  const isEnd=(p.i===0||p.i===g.board.length-1);
+  const cls=(isLast?'lastp ':'')+(isEnd?'endt ':'')+(isLast&&showPop?'pop':'');
+  const html=p.v
+   ?(p.t&&p.s<0?tile(p.b,p.a,'vert '+cls):tile(p.a,p.b,'vert '+cls))
+   :(p.dir>0?tile(p.a,p.b,cls):tile(p.b,p.a,cls));
   return cell(p,html,'',`data-i="${p.i}"`)}).join('');
  if(show)out+=cell(L.gl,plus,'ghost',`onclick="put('L')"`)+cell(L.gr,plus,'ghost',`onclick="put('R')"`);
  bd.style.cssText=`--u:${u}px;width:${cap*u}px;height:${(maxY-minY)*u+pad*2}px`;
  bd.innerHTML=out;
- const last=g.board.length-1;
- [0,last].forEach(i=>{const t=bd.querySelector(`.cell[data-i="${i}"] .tile`);if(t)t.classList.add('endt')});
- if(g.msg&&g.msg.kind==='play'){const k=g.msg.tile.join();
-  bd.querySelectorAll('.tile').forEach(t=>{if([+t.dataset.a,+t.dataset.b].sort().join()===k){t.classList.add('lastp');if(g.msg.id!==popId)t.classList.add('pop')}});
-  popId=g.msg.id}}
+ if(g.msg)popId=g.msg.id;
+}
 window.addEventListener('resize',()=>{if(S&&S.game)renderBoard(S.game)});
 
 /* ---------- OYUN EKRANI ---------- */
@@ -368,7 +406,7 @@ applyZoom();
 sock.on('state',s=>{const prev=S;S=s;VS=new Set(s.voice||[]);syncPeers();
  if(!s.game){show('wait');renderWait();return}
  show('game');const g=s.game;
- if(!prev||!prev.game||g.round!==prev.game.round){sel=null;popId=0}
+ if(!prev||!prev.game||g.round!==prev.game.round){sel=null;popId=0;lastResultKey=''}
  if(g.msg&&g.msg.id!==lastMid){lastMid=g.msg.id;const k=g.msg.kind;
   if(k==='play')SND.place();else if(k==='draw')SND.draw();else if(k==='pass')SND.pass();else if(k==='start')SND.deal();
   else if(k==='end'&&!s.spec){const m=g.n===4?g.msg.seat%2===s.seat%2:g.msg.seat===s.seat;setTimeout(()=>m?SND.win():SND.lose(),250)}}
@@ -376,6 +414,7 @@ sock.on('state',s=>{const prev=S;S=s;VS=new Set(s.voice||[]);syncPeers();
  if(mine&&!lastMine)setTimeout(SND.turn,200);lastMine=mine;
  renderGame()});
 
+/* PATCH 7: showResult cache */
 function renderGame(){const g=S.game,me=S.seat,sp=!!S.spec,teams=g.n===4;
  $('ginfo').textContent=`Əl ${g.round} · Bazar: ${g.n===4?'yoxdur':g.market+' daş'} · ${S.code}`+(S.watchers?` · izləyici ${S.watchers}`:'');
  $('gscore').innerHTML=g.score.map((sc,i)=>{
@@ -396,14 +435,31 @@ function renderGame(){const g=S.game,me=S.seat,sp=!!S.spec,teams=g.n===4;
  $('ghand').innerHTML=g.hand.map(([a,b])=>{const ok=g.playable.some(t=>t[0]===a&&t[1]===b),s=sel&&sel[0]===a&&sel[1]===b;
   return tile(a,b,`vert ${ok?'ok':mine?'dim':''} ${s?'sel':''}`)}).join('');
  renderVoice();
- if(g.result)showResult(g);else $('modal').classList.remove('on')}
+ if(g.result){
+  const key=g.over+'|'+g.result.winner+'|'+g.result.points+'|'+(g.msg?g.msg.id:'');
+  if(key!==lastResultKey){lastResultKey=key;showResult(g);}
+ }else{
+  lastResultKey='';
+  $('modal').classList.remove('on');
+ }
+}
 $('ghand').onclick=e=>{const t=e.target.closest('.tile');if(t)clickTile(+t.dataset.a,+t.dataset.b)};
 
-function clickTile(a,b){const g=S.game;if(S.spec||g.turn!==S.seat||g.result)return;ac();
- if(!g.playable.some(t=>t[0]===a&&t[1]===b)){SND.err();return toast('Bu daşı qoymaq olmur')}
+/* PATCH 5: clickTile — sel sıfırlanır */
+function clickTile(a,b){
+ const g=S.game;
+ if(S.spec||g.turn!==S.seat||g.result)return;
+ ac();
+ if(!g.playable.some(t=>t[0]===a&&t[1]===b)){
+  SND.err();
+  if(sel){sel=null;renderGame()}
+  return toast('Bu daşı qoymaq olmur');
+ }
  if(!g.board.length)return sock.emit('play',{tile:[a,b],side:'R'});
  const [L,R]=g.ends,cl=a===L||b===L,cr=a===R||b===R;
- if(cl&&cr&&L!==R){sel=[a,b];renderGame()}else sock.emit('play',{tile:[a,b],side:cr?'R':'L'})}
+ if(cl&&cr&&L!==R){sel=[a,b];renderGame()}
+ else{sel=null;sock.emit('play',{tile:[a,b],side:cr?'R':'L'})}
+}
 function put(side){if(!sel)return;const t=sel;sel=null;sock.emit('play',{tile:t,side})}
 
 function showResult(g){const r=g.result,teams=g.n===4,me=S.seat,sp=!!S.spec;
@@ -437,9 +493,19 @@ function playSynth(k){
  else if(k===2){tone(420,.15,'sine',.2);tone(480,.15,'sine',.2,.18)}
  else if(k===3)[523,659,784].forEach(f=>tone(f,.4,'triangle',.18));
  else{tone(900,.05,'square',.1);tone(900,.05,'square',.1,.25)}}
-function playReact(k){if(muted)return;
- const a=new Audio('/static/sounds/'+RFILES[k]);a.volume=.9;a.onerror=()=>playSynth(k);
- const pr=a.play();if(pr&&pr.catch)pr.catch(()=>playSynth(k));setTimeout(()=>{try{a.pause()}catch(e){}},4500)}
+
+/* PATCH 3: playReact — 2x synth qarşısı */
+function playReact(k){
+ if(muted)return;
+ let played=false;
+ const fail=()=>{if(!played){played=true;playSynth(k)}};
+ const a=new Audio('/static/sounds/'+RFILES[k]);
+ a.volume=.9;
+ a.onerror=fail;
+ const pr=a.play();
+ if(pr&&pr.catch)pr.catch(fail);
+ setTimeout(()=>{try{a.pause()}catch(e){}},4500);
+}
 sock.on('react',({seat,k})=>{playReact(k);if(!S||!S.game)return;
  const own=seat===S.seat,el=own?$('ghand'):document.querySelector(`.opp[data-seat="${seat}"]`);if(!el)return;
  const r=el.getBoundingClientRect(),b=document.createElement('div');b.className='bub';b.innerHTML=face(k);
@@ -459,7 +525,7 @@ function stopVoice(silent){closeAll();if(localStream){localStream.getTracks().fo
  const was=voiceOn;voiceOn=false;micMuted=false;if(was&&!silent)sock.emit('voice',{on:false});if(S&&S.game)renderGame()}
 function micToggle(){micMuted=!micMuted;if(localStream)localStream.getAudioTracks().forEach(t=>t.enabled=!micMuted);renderVoice()}
 function toggleOpp(i){muteOpp[i]=!muteOpp[i];if(peers[i]&&peers[i].audio)peers[i].audio.muted=muteOpp[i];renderGame()}
-function closePeer(seat){const p=peers[seat];if(!p)return;try{p.pc.close()}catch(e){}if(p.audio)p.audio.srcObject=null;delete peers[seat];SPK[seat]=false}
+function closePeer(seat){const p=peers[seat];if(!p)return;try{p.pc.close()}catch(e){}if(p.audio)p.audio.srcObject=null;delete peers[seat];SPK[seat]=false;applySpeak()}
 function closeAll(){Object.keys(peers).forEach(closePeer)}
 function syncPeers(){Object.keys(peers).forEach(k=>{if(!VS.has(+k))closePeer(k)})}
 function mkPeer(seat,init){const pc=new RTCPeerConnection(ICE),p=peers[seat]={pc,audio:null,q:[]};
@@ -480,7 +546,14 @@ function watchSpeak(seat,stream){try{const A=ac(),src=A.createMediaStreamSource(
  const buf=new Uint8Array(an.frequencyBinCount);
  const id=setInterval(()=>{if(!peers[seat]){clearInterval(id);SPK[seat]=false;applySpeak();return}
   an.getByteFrequencyData(buf);let m=0;for(const v of buf)m+=v;const on=!muteOpp[seat]&&m/buf.length>14;if(SPK[seat]!==on){SPK[seat]=on;applySpeak()}},150)}catch(e){}}
-function applySpeak(){document.querySelectorAll('.opp').forEach(e=>e.classList.toggle('speak',!!SPK[e.dataset.seat]))}
+
+/* PATCH 8: applySpeak cache */
+function applySpeak(){
+ const key=Object.keys(SPK).sort().map(k=>k+':'+(SPK[k]?1:0)).join('|');
+ if(key===lastSpeakKey)return;
+ lastSpeakKey=key;
+ document.querySelectorAll('.opp').forEach(e=>e.classList.toggle('speak',!!SPK[e.dataset.seat]));
+}
 function voiceBtn(i){if(!VS.has(i))return '';
  return voiceOn?`<button class="spk ${muteOpp[i]?'off':''}" onclick="toggleOpp(${i})" title="Bu oyunçunun səsini aç/bağla">${muteOpp[i]?ICON.volx:ICON.vol}</button>`:`<span class="spk" style="opacity:.6">${ICON.mic}</span>`}
 function renderVoice(){const n=VS.size;
