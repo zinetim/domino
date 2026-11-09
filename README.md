@@ -1,6 +1,6 @@
-# 🁣 xnxx 101
+# 🁣 domino 101
 
-Real-vaxt çoxoyunçulu xnxx (2/3/4 nəfər, 101 xal, Google ilə giriş, səs effektləri).
+Real-vaxt çoxoyunçulu domin (2/3/4 nəfər, 101 xal, Google ilə giriş, səs effektləri).
 Stack: Flask + Flask-SocketIO + Vanilla JS. Səslər WebAudio ilə yaradılır (fayl lazım deyil).
 
 ## Lokal işə salma
