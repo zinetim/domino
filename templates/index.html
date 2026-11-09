@@ -8,18 +8,18 @@
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
-:root{--gold:#f5c451;--ink:#10201a;--glass:rgba(255,255,255,.08);--u:34px}
+:root{--gold:#f5c451;--ink:#10201a;--glass:rgba(255,255,255,.08);--line:rgba(255,255,255,.14);--u:34px}
 *{box-sizing:border-box;margin:0}
 html,body{height:100%}
-body{font-family:'Segoe UI',system-ui,sans-serif;color:#f4f1e8;overflow-x:hidden;-webkit-tap-highlight-color:transparent;
- background:radial-gradient(ellipse at 50% 15%,#23865d 0,#0f4d36 50%,#06271b 100%)}
-.screen{display:none;min-height:100%;padding:16px;max-width:980px;margin:auto}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;color:#f4f1e8;overflow-x:hidden;-webkit-tap-highlight-color:transparent;
+ background:radial-gradient(ellipse at 50% 0,#1d7a55 0,#0d4733 55%,#062a1e 100%) fixed}
+.screen{display:none;min-height:100vh;min-height:100dvh;padding:14px;max-width:1000px;margin:auto}
 .screen.on{display:flex;flex-direction:column}
-.card{background:var(--glass);border:1px solid rgba(255,255,255,.15);border-radius:22px;padding:24px;box-shadow:0 20px 50px rgba(0,0,0,.35)}
-h1{font-size:44px;letter-spacing:2px;text-align:center;background:linear-gradient(#ffe9a8,var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
+.card{background:var(--glass);border:1px solid var(--line);border-radius:22px;padding:24px;box-shadow:0 20px 50px rgba(0,0,0,.35)}
+h1{font-size:42px;letter-spacing:1px;text-align:center;background:linear-gradient(#ffe9a8,var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
 .sub{text-align:center;opacity:.75;margin:4px 0 20px}
 button,input{font:inherit}
-.btn{border:0;border-radius:14px;padding:12px 20px;font-weight:700;cursor:pointer;color:var(--ink);text-decoration:none;display:inline-flex;align-items:center;gap:4px;
+.btn{border:0;border-radius:14px;padding:12px 20px;font-weight:700;cursor:pointer;color:var(--ink);text-decoration:none;display:inline-flex;align-items:center;gap:5px;
  background:linear-gradient(#ffe08a,var(--gold));box-shadow:0 4px 0 #a97c14,0 8px 16px rgba(0,0,0,.3);transition:transform .08s}
 .btn:active{transform:translateY(3px);box-shadow:0 1px 0 #a97c14}
 .btn.ghost{background:var(--glass);color:#fff;box-shadow:none;border:1px solid rgba(255,255,255,.25)}
@@ -44,93 +44,102 @@ input:focus{border-color:var(--gold)}
 @keyframes blink{to{transform:scale(1.2);opacity:.6}}
 .ic{width:1.15em;height:1.15em;vertical-align:-.2em;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
-/* ---- oyun ---- */
-#game{gap:9px;padding-bottom:max(16px,env(safe-area-inset-bottom))}
-.top{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.chip{background:var(--glass);border:1px solid rgba(255,255,255,.15);border-radius:999px;padding:6px 14px;font-size:13px;color:#fff}
-button.chip{cursor:pointer}
-.score{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
-.sc{min-width:120px;background:rgba(0,0,0,.28);border-radius:14px;padding:8px 12px;border:2px solid transparent}
-.sc.me{border-color:var(--gold)}.sc.turn,.opp.turn{border-color:#7dffb2;box-shadow:0 0 16px rgba(125,255,178,.5)}
-.sc b{font-size:22px;color:var(--gold)}
-.bar2{height:5px;border-radius:5px;background:rgba(255,255,255,.15);margin-top:4px;overflow:hidden}
-.bar2 i{display:block;height:100%;background:var(--gold);transition:width .6s}
-.opps{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
-.opp{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.1);padding:8px 14px;border-radius:16px;border:2px solid transparent;position:relative}
-.opp.speak{border-color:#7dffb2;box-shadow:0 0 0 2px #7dffb2,0 0 18px #7dffb2}
-.backs{display:flex;gap:2px;max-width:150px;flex-wrap:wrap}
-.backs i{width:9px;height:18px;border-radius:2px;background:linear-gradient(#f8f3e3,#cfc6a8);border:1px solid #8a8466}
-.tag{font-size:11px;background:var(--gold);color:var(--ink);padding:1px 7px;border-radius:9px;font-weight:700}
-.spk{border:0;background:rgba(0,0,0,.3);color:#fff;border-radius:50%;width:32px;height:32px;display:grid;place-items:center;cursor:pointer;flex:none}
+/* ======== OYUN EKRANI (ekrana sığır) ======== */
+#game{gap:6px;padding:8px 10px max(8px,env(safe-area-inset-bottom));max-width:1100px}
+.gtop{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:34px}
+.ginfo{font-size:13px;opacity:.95;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ginfo b{color:var(--gold)}.code4{letter-spacing:2px;font-weight:700}
+.gbtns{display:flex;gap:6px;align-items:center;flex:none}
+#gvoice{display:inline-flex;gap:6px}
+.chip{background:var(--glass);border:1px solid var(--line);border-radius:999px;min-width:34px;height:34px;padding:0 10px;font-size:13px;color:#fff;
+ display:inline-flex;align-items:center;justify-content:center;gap:4px;cursor:pointer}
+.chip.off{color:#ff8a80}.chip small{font-size:11px}
+/* oyunçular */
+.players{display:flex;gap:6px;justify-content:center}
+.pl{flex:1 1 0;min-width:0;max-width:230px;display:flex;align-items:center;gap:7px;padding:6px 8px;border-radius:14px;background:rgba(0,0,0,.28);
+ border:2px solid transparent;position:relative}
+.pl.me{border-color:rgba(245,196,81,.55)}
+.pl.turn{border-color:#7dffb2;background:rgba(125,255,178,.12)}
+.pl.speak{box-shadow:0 0 0 2px #7dffb2,0 0 14px #7dffb2}
+.pl .av{width:30px;height:30px;font-size:13px;border-width:2px}
+.pi{min-width:0;line-height:1.25}
+.pi b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pi em{font-style:normal;font-size:10px;background:var(--gold);color:var(--ink);padding:0 5px;border-radius:7px;margin-left:3px;font-weight:700}
+.ps{font-size:12px;opacity:.9;white-space:nowrap}.ps strong{color:var(--gold);font-size:14px}
+i.tl{display:inline-block;width:7px;height:12px;border-radius:2px;background:#fffdf4;border:1px solid #777;margin-right:3px;vertical-align:-2px}
+.spk{border:0;background:rgba(0,0,0,.35);color:#fff;border-radius:50%;width:24px;height:24px;display:grid;place-items:center;cursor:pointer;flex:none;margin-left:auto;font-size:12px}
 .spk.off{color:#ff8a80}
-.endsinfo{display:flex;justify-content:center;align-items:center;gap:10px;font-size:15px;min-height:32px}
-.ec{width:32px;height:32px;border-radius:50%;display:inline-grid;place-items:center;font-weight:900;font-size:18px;color:#fff;background:#777;box-shadow:0 2px 4px rgba(0,0,0,.4),inset 0 1px 1px rgba(255,255,255,.4)}
-.ec.n1{background:#c62828}.ec.n2{background:#1565c0}.ec.n3{background:#2e7d32}.ec.n4{background:#e65100}.ec.n5{background:#6a1b9a}.ec.n6{background:#00695c}
-.boardwrap{flex:1;min-height:200px;border-radius:28px;padding:18px 10px;margin:4px 8px;display:flex;align-items:center;justify-content:center;
- background:radial-gradient(ellipse at 50% 40%,rgba(255,255,255,.06),transparent 60%),radial-gradient(ellipse at center,#15694a 0,#0a4130 70%,#052a1c 100%);
- box-shadow:inset 0 0 60px rgba(0,0,0,.55),0 0 0 7px #6b4220,0 0 0 9px #8a5a2c,0 0 0 11px #3d230d,0 14px 30px rgba(0,0,0,.5)}
-.board{position:relative;display:block;flex:none}
+/* stol */
+.stage{position:relative;flex:1 1 0;min-height:170px;display:flex}
+.boardwrap{flex:1;min-width:0;display:flex;overflow:auto;padding:12px 8px;border-radius:18px;border:3px solid #6b4a2b;
+ background:radial-gradient(ellipse at 50% 40%,#1c7d58 0,#0f5238 75%,#0a3d2a 100%);box-shadow:inset 0 0 40px rgba(0,0,0,.45),0 4px 14px rgba(0,0,0,.4)}
+.board{position:relative;display:block;flex:none;margin:auto}
+.endsinfo{position:absolute;left:10px;top:8px;z-index:3;display:flex;align-items:center;gap:6px;font-size:11px;background:rgba(0,0,0,.45);padding:3px 8px;border-radius:999px;pointer-events:none}
+.endsinfo b{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:#fffdf4;color:#111;font-size:13px}
 .cell{position:absolute;display:flex;align-items:center;justify-content:center}
 .cell.ghost{display:grid;place-items:center;cursor:pointer;border:2px dashed var(--gold);border-radius:calc(var(--u)*.2);
- background:rgba(245,196,81,.18);animation:blink 1s infinite alternate}
+ background:rgba(245,196,81,.2);animation:blink 1s infinite alternate}
 .gplus{color:var(--gold);font-size:calc(var(--u)*.9);line-height:1}
 
-/* daşlar */
-.tile{display:inline-flex;position:relative;flex:none;color:#111;border-radius:calc(var(--u)*.18);outline:2px solid #1d1d1d;outline-offset:-1px;
- background:linear-gradient(160deg,#fffef8 0,#f3ecd3 55%,#ddd3b0 100%);box-shadow:0 2px 0 #b3a97f,0 4px 0 #8f8660,0 7px 10px rgba(0,0,0,.45)}
+/* ======== DAŞLAR: klassik fildişi, qara nöqtə ======== */
+.tile{display:inline-flex;position:relative;flex:none;color:#111;border-radius:calc(var(--u)*.2);outline:1.5px solid #222;outline-offset:-1px;
+ background:linear-gradient(160deg,#fffdf4 0,#f6efd8 60%,#e9dfbf 100%);box-shadow:0 2px 0 #b9ae88,0 4px 6px rgba(0,0,0,.4)}
 .tile.vert{flex-direction:column}
-.half{width:var(--u);height:var(--u);display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:calc(var(--u)*.15)}
-.half i{place-self:center;width:78%;height:78%;border-radius:50%}
-.half i.on{background:radial-gradient(circle at 35% 30%,#555,#000);box-shadow:0 0 0 1px rgba(0,0,0,.5)}
-.half.n1 i.on{background:radial-gradient(circle at 35% 30%,#ff8a80,#c62828)}
-.half.n2 i.on{background:radial-gradient(circle at 35% 30%,#82b1ff,#1565c0)}
-.half.n3 i.on{background:radial-gradient(circle at 35% 30%,#a5d6a7,#2e7d32)}
-.half.n4 i.on{background:radial-gradient(circle at 35% 30%,#ffcc80,#e65100)}
-.half.n5 i.on{background:radial-gradient(circle at 35% 30%,#ce93d8,#6a1b9a)}
-.half.n6 i.on{background:radial-gradient(circle at 35% 30%,#80cbc4,#00695c)}
-.bar{position:absolute;background:#6b6246}
-.tile:not(.vert) .bar{left:50%;top:15%;bottom:15%;width:3px;transform:translateX(-1.5px)}
-.tile.vert .bar{top:50%;left:15%;right:15%;height:3px;transform:translateY(-1.5px)}
-.bar:after{content:"";position:absolute;left:50%;top:50%;width:calc(var(--u)*.22);height:calc(var(--u)*.22);margin:calc(var(--u)*-.11) 0 0 calc(var(--u)*-.11);
- border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff6c8,#c8a13a 60%,#7a5c14)}
-.tile.endt{outline:3px solid #f5c451}
-.tile.lastp{outline:3px solid #7dffb2;box-shadow:0 0 18px #7dffb2}
+.half{width:var(--u);height:var(--u);display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:calc(var(--u)*.16)}
+.half i{place-self:center;width:76%;height:76%;border-radius:50%}
+.half i.on{background:radial-gradient(circle at 35% 30%,#4a4a4a,#000)}
+.bar{position:absolute;background:#2a2a2a}
+.tile:not(.vert) .bar{left:50%;top:14%;bottom:14%;width:2px;transform:translateX(-1px)}
+.tile.vert .bar{top:50%;left:14%;right:14%;height:2px;transform:translateY(-1px)}
+.bar:after{content:"";position:absolute;left:50%;top:50%;width:calc(var(--u)*.2);height:calc(var(--u)*.2);margin:calc(var(--u)*-.1) 0 0 calc(var(--u)*-.1);
+ border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff2b8,#c8a13a 60%,#7a5c14)}
+.tile.endt{outline:2.5px solid #f5c451}
+.tile.lastp{outline:2.5px solid #4dff9a;box-shadow:0 0 14px #4dff9a,0 2px 0 #b9ae88}
 .pop{animation:pop .45s cubic-bezier(.2,1.6,.4,1)}
 @keyframes pop{from{transform:scale(.2) rotate(-25deg);opacity:0}}
 
-.status{width:fit-content;max-width:94%;margin:0 auto;padding:8px 20px;border-radius:999px;font-size:calc(15px + var(--hz,1)*2px);font-weight:600;text-align:center;
- background:rgba(0,0,0,.32);border:1px solid rgba(255,255,255,.14)}
-.actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;min-height:50px}
-.hand{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;width:fit-content;max-width:100%;margin:0 auto;padding:24px 12px 14px;border-radius:18px;
- --u:calc(var(--hz,1)*clamp(40px,11vw,64px));background:linear-gradient(#7b4a22,#59311a);box-shadow:inset 0 6px 10px rgba(0,0,0,.45),0 4px 0 #3d230d,0 8px 14px rgba(0,0,0,.4)}
+/* aşağı panel */
+.dock{display:flex;flex-direction:column;gap:6px}
+.srow{display:flex;gap:8px;align-items:center;min-height:38px}
+.status{flex:1;min-width:0;padding:8px 14px;border-radius:12px;font-size:14px;font-weight:600;background:rgba(0,0,0,.3);border:1px solid var(--line);line-height:1.25}
+.status.mine{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+.actions{display:flex;gap:8px;flex:none}
+.actions .btn{padding:9px 14px;font-size:14px;box-shadow:0 3px 0 #a97c14}
+.actions .btn.ghost{box-shadow:none}
+.hand{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;padding:14px 8px 6px;border-radius:16px;background:rgba(0,0,0,.28);border:1px solid var(--line);--u:44px;min-height:calc(var(--u)*2 + 22px)}
 .hand .tile{cursor:pointer;transition:transform .15s}
-.hand .tile.ok{transform:translateY(-14px);outline:3px solid var(--gold);box-shadow:0 0 20px var(--gold)}
-.hand .tile.dim{filter:brightness(.6)}
-.hand .tile.sel{transform:translateY(-24px) scale(1.06)}
-.reacts{display:flex;gap:6px;justify-content:center}
-.rbtn{width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,.25);background:var(--glass);padding:3px;cursor:pointer}
+.hand .tile.ok{transform:translateY(-10px);outline:3px solid var(--gold);box-shadow:0 0 16px rgba(245,196,81,.9),0 2px 0 #b9ae88}
+.hand .tile.dim{opacity:.55}
+.hand .tile.sel{transform:translateY(-16px) scale(1.05)}
+.reacts{display:flex;gap:8px;justify-content:center}
+.rbtn{width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.25);background:var(--glass);padding:2px;cursor:pointer}
 .rbtn:active{transform:scale(.8)}.rbtn svg{width:100%;height:100%}
 .bub{position:fixed;width:54px;height:54px;z-index:30;pointer-events:none;animation:floatup 2.2s ease-out forwards;filter:drop-shadow(0 4px 6px rgba(0,0,0,.4))}
 .bub svg{width:100%;height:100%}
 .bub .nm{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:2px;background:rgba(0,0,0,.7);color:#fff;padding:1px 9px;border-radius:9px;font-size:11px;font-weight:700;white-space:nowrap}
 @keyframes floatup{0%{transform:translate(-50%,0) scale(.3);opacity:0}15%{transform:translate(-50%,-10px) scale(1.15);opacity:1}100%{transform:translate(-50%,-90px) scale(1);opacity:0}}
-#gvoice .btn{padding:7px 12px;font-size:14px}
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;place-items:center;z-index:9;padding:16px}
+/* nəticə pəncərəsi */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;place-items:center;z-index:9;padding:14px}
 .modal.on{display:grid}
-.modal .card{max-width:520px;width:100%;background:#12382a;max-height:90vh;overflow:auto;text-align:center}
+.modal .card{max-width:520px;width:100%;background:#12382a;max-height:92vh;overflow:auto;text-align:center}
 .mh{display:flex;align-items:center;gap:8px;justify-content:space-between;margin:8px 0;font-size:13px;text-align:left}
 .mh .tile{--u:18px}
-.toast{position:fixed;left:50%;top:16px;transform:translate(-50%,-80px);background:#b3261e;color:#fff;padding:10px 18px;border-radius:12px;z-index:20;transition:.35s;font-weight:600;max-width:92vw;text-align:center}
+.score{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.sc{min-width:110px;background:rgba(0,0,0,.28);border-radius:14px;padding:8px 12px}
+.sc b{font-size:22px;color:var(--gold)}
+.toast{position:fixed;left:50%;top:14px;transform:translate(-50%,-90px);background:#b3261e;color:#fff;padding:10px 18px;border-radius:12px;z-index:40;transition:.35s;font-weight:600;max-width:92vw;text-align:center}
 .toast.on{transform:translate(-50%,0)}
+.toast.info{background:#1d6b4a}
 .big{font-size:30px;font-weight:900;color:var(--gold);margin:6px 0}
-@media(min-width:720px){.hand{--u:calc(var(--hz,1)*64px)}}
+@media(max-width:420px){.pi b{font-size:12px}.ps{font-size:11px}.pl{padding:5px 6px;gap:5px}.pl .av{width:26px;height:26px}.status{font-size:13px}}
+@media(max-height:620px){.reacts{display:none}}
 </style>
 </head>
 <body>
 <div class="toast" id="toast"></div>
 
 <section class="screen on" id="login"><div class="card">
- <h1>DOMINO</h1><p class="sub">101 xala qədər · 2–4 oyunçu · real vaxt</p>
+ <h1>Domino 101</h1><p class="sub">101 xala qədər · 2–4 oyunçu · real vaxt</p>
  <div id="gbtn" class="row" style="min-height:44px"></div>
  <div class="sep" id="gsep">— və ya —</div>
  <input id="gname" maxlength="16" placeholder="Adınızı yazın (qonaq kimi)" onkeydown="if(event.key==='Enter')guest()">
@@ -171,22 +180,20 @@ button.chip{cursor:pointer}
 </div></section>
 
 <section class="screen" id="game">
- <div class="top"><span class="chip" id="ginfo"></span>
-  <div class="row" style="gap:6px">
+ <header class="gtop"><div class="ginfo" id="ginfo"></div>
+  <div class="gbtns"><span id="gvoice"></span>
    <button class="chip" id="zoomb" onclick="cycleZoom()" title="Daşları böyüt" style="font-weight:800">Aa</button>
    <button class="chip" id="gshare" onclick="shareLink()" title="Linki paylaş"></button>
    <button class="chip" id="mute" onclick="toggleMute()"></button>
    <button class="chip" id="gexit" onclick="if(confirm('Oyundan çıxılsın?'))leave()"></button>
-  </div></div>
- <div class="row" id="gvoice"></div>
- <div class="score" id="gscore"></div>
- <div class="opps" id="gopps"></div>
- <div class="endsinfo" id="gends"></div>
- <div class="boardwrap"><div class="board" id="gboard"></div></div>
- <div class="status" id="gstatus"></div>
- <div class="actions" id="gact"></div>
- <div class="hand" id="ghand"></div>
- <div class="reacts" id="greacts"></div>
+  </div></header>
+ <div class="players" id="gplayers"></div>
+ <div class="stage"><div class="endsinfo" id="gends"></div><div class="boardwrap"><div class="board" id="gboard"></div></div></div>
+ <div class="dock">
+  <div class="srow"><div class="status" id="gstatus"></div><div class="actions" id="gact"></div></div>
+  <div class="hand" id="ghand"></div>
+  <div class="reacts" id="greacts"></div>
+ </div>
 </section>
 
 <div class="modal" id="modal"><div class="card" id="mbody"></div></div>
@@ -213,9 +220,9 @@ document.querySelectorAll('[data-ic]').forEach(b=>b.innerHTML=ICON[b.dataset.ic]
 $('gshare').innerHTML=ICON.share;$('gexit').innerHTML=ICON.close;
 
 const sock=io({transports:['websocket','polling']});
-let ME=null,S=null,sel=null,lastMid=0,lastMine=false,popId=0,PENDING=null;
-let muted=localStorage.mute==='1',ZOOM=+localStorage.zoom||1;
+let ME=null,S=null,sel=null,lastMid=0,lastMine=false,popId=0,lastRd=0,PENDING=null;
 let lastResultKey='',lastSpeakKey='';
+let muted=localStorage.mute==='1',ZOOM=+localStorage.zoom||1;
 $('mute').innerHTML=muted?ICON.volx:ICON.vol;
 
 /* ---------- SƏS ---------- */
@@ -240,10 +247,8 @@ function toggleMute(){muted=!muted;localStorage.mute=muted?'1':'0';$('mute').inn
 
 /* ---------- GİRİŞ ---------- */
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id))}
-function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('on'),2600)}
+function toast(m,info){const t=$('toast');t.textContent=m;t.classList.toggle('info',!!info);t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('on'),2600)}
 function setMsg(m,ok){const e=$('lerr');e.style.color=ok?'#ffe08a':'#ffb4ab';e.textContent=m||''}
-
-/* PATCH 1: guest() — socket bağlı deyilsə connect-i gözlə */
 function guest(){
  const n=$('gname').value.trim();
  if(!n)return setMsg('Ad yazın');
@@ -252,11 +257,7 @@ function guest(){
  localStorage.removeItem('cred');
  ac();
  const send=()=>sock.emit('auth',{name:n,gid:localStorage.gid});
- if(!sock.connected){
-  setMsg('Server oyanır, 30–60 saniyə gözləyin…',1);
-  sock.once('connect',send);
-  return;
- }
+ if(!sock.connected){setMsg('Server oyanır, 30–60 saniyə gözləyin…',1);sock.once('connect',send);return}
  send();
 }
 function logout(){localStorage.removeItem('cred');localStorage.removeItem('gname');location.href=location.pathname}
@@ -281,26 +282,11 @@ sock.on('authed',u=>{ME=u;setMsg('');avatar($('lav'),u);$('lname').textContent=u
  if(PENDING){const p=PENDING;PENDING=null;history.replaceState(null,'',location.pathname);sock.emit(p.w?'spectate':'enter',{code:p.c})}
  setTimeout(refreshRooms,250)});
 sock.on('err',m=>{toast(m);SND.err()});
-
-/* PATCH 4: left/closed zamanı voice emit */
-sock.on('left',()=>{
- if(voiceOn){voiceOn=false;sock.emit('voice',{on:false})}
- stopVoice(true);S=null;$('modal').classList.remove('on');show('lobby');setTimeout(refreshRooms,250);
-});
-sock.on('closed',m=>{
- if(voiceOn){voiceOn=false;sock.emit('voice',{on:false})}
- stopVoice(true);S=null;$('modal').classList.remove('on');toast(m);show('lobby');setTimeout(refreshRooms,250);
-});
-
-/* PATCH 2: avatar() — şəkil yüklənmirsə fallback */
+sock.on('left',()=>{if(voiceOn){voiceOn=false;sock.emit('voice',{on:false})}stopVoice(true);S=null;$('modal').classList.remove('on');show('lobby');setTimeout(refreshRooms,250)});
+sock.on('closed',m=>{if(voiceOn){voiceOn=false;sock.emit('voice',{on:false})}stopVoice(true);S=null;$('modal').classList.remove('on');toast(m);show('lobby');setTimeout(refreshRooms,250)});
 function avatar(el,p){
- el.style.backgroundImage='';
- el.textContent=(p.name||'?')[0].toUpperCase();
- if(p.pic){
-  const img=new Image();
-  img.onload=()=>{el.style.backgroundImage=`url(${p.pic})`;el.textContent='';};
-  img.src=p.pic;
- }
+ el.style.backgroundImage='';el.textContent=(p.name||'?')[0].toUpperCase();
+ if(p.pic){const img=new Image();img.onload=()=>{el.style.backgroundImage=`url(${p.pic})`;el.textContent=''};img.src=p.pic}
 }
 const avHtml=p=>`<div class="av" style="${p.pic?`background-image:url(${esc(p.pic)})`:''}">${p.pic?'':esc(p.name[0].toUpperCase())}</div>`;
 
@@ -322,9 +308,9 @@ const LINK=()=>location.origin+'/?room='+S.code,WLINK=()=>location.origin+'/?wat
 function copyText(t,msg){const ok=()=>toast(msg||'Kopyalandı');
  if(navigator.clipboard)navigator.clipboard.writeText(t).then(ok,()=>{});
  else{const i=document.createElement('input');i.value=t;document.body.appendChild(i);i.select();document.execCommand('copy');i.remove();ok()}}
-function shareLink(){const d={title:'Domino 101',text:'dominoya gəl! Otaq kodu: '+S.code,url:LINK()};
+function shareLink(){const d={title:'Domino 101',text:'Dominoya gəl! Otaq kodu: '+S.code,url:LINK()};
  if(navigator.share)navigator.share(d).catch(()=>{});else copyText(LINK(),'Link kopyalandı')}
-function shareHtml(){const t=encodeURIComponent('dominoya gəl! Kod: '+S.code+' ');
+function shareHtml(){const t=encodeURIComponent('Dominoya gəl! Kod: '+S.code+' ');
  return `<button class="btn" onclick="shareLink()">${ICON.share} Paylaş</button>
  <a class="btn wa" href="https://wa.me/?text=${t}${encodeURIComponent(LINK())}" target="_blank" rel="noopener">WhatsApp</a>
  <a class="btn tg" href="https://t.me/share/url?url=${encodeURIComponent(LINK())}&text=${t}" target="_blank" rel="noopener">Telegram</a>
@@ -365,37 +351,40 @@ function layoutBoard(board,origin,cap,gd){
  if(gd===true||gd===false){gr=step({...R},gd,true);if(gr.v&&!gr.t)reg(R.r,gr.x);gl=step({...L},gd,true)}
  return {items:out,gl,gr}}
 
-/* PATCH 6 + 8: renderBoard — lastp/endt inline, W ölçü düzəlişi */
 function renderBoard(g){
- const bd=$('gboard'),ge=$('gends');
- ge.innerHTML=g.ends?`Açıq uclar <span class="ec n${g.ends[0]}">${g.ends[0]}</span><span style="opacity:.5">—</span><span class="ec n${g.ends[1]}">${g.ends[1]}</span>`:'';
+ const bd=$('gboard'),wrap=bd.parentElement,ge=$('gends');
+ ge.innerHTML=g.ends?`Uclar <b>${g.ends[0]}</b><b>${g.ends[1]}</b>`:'';
  if(!g.board.length){bd.style.cssText='';bd.innerHTML='<span style="opacity:.5;font-size:18px">Stol boşdur</span>';return}
- const W=Math.max(240,Math.floor(bd.parentElement.getBoundingClientRect().width)-56);
- const cap=Math.max(7,Math.round((W<400?8:W<560?10:W<900?14:16)/ZOOM));
- const u=Math.max(16,Math.min(Math.round(60*ZOOM),Math.floor(W/cap)));
- const mine=g.turn===S.seat&&!g.result,show=!!sel&&mine;
- const o=Math.min(g.origin||0,g.board.length-1);
- const L=layoutBoard(g.board,o,cap,show?sel[0]===sel[1]:null);
- const all=L.items.concat(L.gl?[L.gl]:[],L.gr?[L.gr]:[]);
- const minY=Math.min(...all.map(p=>p.y)),maxY=Math.max(...all.map(p=>p.y+p.h)),pad=6;
+ const cs=getComputedStyle(wrap),W=Math.floor(wrap.clientWidth-(parseFloat(cs.paddingLeft)||0)-(parseFloat(cs.paddingRight)||0)-6);
+ const H=wrap.clientHeight?wrap.clientHeight-(parseFloat(cs.paddingTop)||0)-(parseFloat(cs.paddingBottom)||0)-6:0;
+ const mine=g.turn===S.seat&&!g.result,show=!!sel&&mine,pad=4;
+ const o=Math.min(g.origin||0,g.board.length-1),gd=show?sel[0]===sel[1]:null;
+ const maxU=Math.round(58*ZOOM),minU=16;
+ const calc=cap=>{const u=Math.max(minU,Math.min(maxU,Math.floor(W/cap)));
+  const L=layoutBoard(g.board,o,cap,gd),all=L.items.concat(L.gl?[L.gl]:[],L.gr?[L.gr]:[]);
+  const minY=Math.min(...all.map(p=>p.y)),maxY=Math.max(...all.map(p=>p.y+p.h));
+  return {cap,u,L,minY,h:(maxY-minY)*u+pad*2}};
+ let best=null,last=null;
+ for(let cap=7;cap<=24;cap++){const c=calc(cap);last=c;if(c.u*cap>W+1)break;
+  if(!H||c.h<=H){best=c;break}}
+ if(!best)best=last||calc(7);
+ const {cap,u,L,minY,h}=best;
  const cell=(p,html,cls,attr)=>`<div class="cell ${cls||''}" ${attr||''} style="left:${p.x*u}px;top:${(p.y-minY)*u+pad}px;width:${p.w*u}px;height:${p.h*u}px">${html}</div>`;
  const plus='<b class="gplus">+</b>';
  const lastKey=(g.msg&&g.msg.kind==='play')?g.msg.tile.slice().sort().join():null;
  const showPop=lastKey&&g.msg.id!==popId;
  let out=L.items.map(p=>{
-  const isLast=lastKey&&[p.a,p.b].sort().join()===lastKey;
-  const isEnd=(p.i===0||p.i===g.board.length-1);
+  const isLast=lastKey&&[p.a,p.b].sort().join()===lastKey,isEnd=(p.i===0||p.i===g.board.length-1);
   const cls=(isLast?'lastp ':'')+(isEnd?'endt ':'')+(isLast&&showPop?'pop':'');
-  const html=p.v
-   ?(p.t&&p.s<0?tile(p.b,p.a,'vert '+cls):tile(p.a,p.b,'vert '+cls))
-   :(p.dir>0?tile(p.a,p.b,cls):tile(p.b,p.a,cls));
+  const html=p.v?(p.t&&p.s<0?tile(p.b,p.a,'vert '+cls):tile(p.a,p.b,'vert '+cls)):(p.dir>0?tile(p.a,p.b,cls):tile(p.b,p.a,cls));
   return cell(p,html,'',`data-i="${p.i}"`)}).join('');
  if(show)out+=cell(L.gl,plus,'ghost',`onclick="put('L')"`)+cell(L.gr,plus,'ghost',`onclick="put('R')"`);
- bd.style.cssText=`--u:${u}px;width:${cap*u}px;height:${(maxY-minY)*u+pad*2}px`;
+ bd.style.cssText=`--u:${u}px;width:${cap*u}px;height:${h}px`;
  bd.innerHTML=out;
  if(g.msg)popId=g.msg.id;
 }
 window.addEventListener('resize',()=>{if(S&&S.game)renderBoard(S.game)});
+if(typeof ResizeObserver!=='undefined'){let q=0;new ResizeObserver(()=>{if(q||!S||!S.game)return;q=1;requestAnimationFrame(()=>{q=0;if(S&&S.game)renderBoard(S.game)})}).observe(document.querySelector('.boardwrap'))}
 
 /* ---------- OYUN EKRANI ---------- */
 const nm=i=>esc(S.players[i].name);
@@ -410,51 +399,49 @@ sock.on('state',s=>{const prev=S;S=s;VS=new Set(s.voice||[]);syncPeers();
  if(g.msg&&g.msg.id!==lastMid){lastMid=g.msg.id;const k=g.msg.kind;
   if(k==='play')SND.place();else if(k==='draw')SND.draw();else if(k==='pass')SND.pass();else if(k==='start')SND.deal();
   else if(k==='end'&&!s.spec){const m=g.n===4?g.msg.seat%2===s.seat%2:g.msg.seat===s.seat;setTimeout(()=>m?SND.win():SND.lose(),250)}}
+ if(!g.rd)lastRd=0;
+ if(g.rd&&g.rd.id!==lastRd){lastRd=g.rd.id;toast(`${S.players[g.rd.seat].name} daşları qarışdırdı (${g.rd.c} dənə «${g.rd.v}»)`,1)}
  const mine=g.turn===s.seat&&!g.result;
  if(mine&&!lastMine)setTimeout(SND.turn,200);lastMine=mine;
  renderGame()});
 
-/* PATCH 7: showResult cache */
-function renderGame(){const g=S.game,me=S.seat,sp=!!S.spec,teams=g.n===4;
- $('ginfo').textContent=`Əl ${g.round} · Bazar: ${g.n===4?'yoxdur':g.market+' daş'} · ${S.code}`+(S.watchers?` · izləyici ${S.watchers}`:'');
- $('gscore').innerHTML=g.score.map((sc,i)=>{
-  const label=teams?`${nm(i)} + ${nm(i+2)}`:nm(i),isMe=!sp&&(teams?i===me%2:i===me),turn=!g.result&&(teams?g.turn%2===i:g.turn===i);
-  return `<div class="sc ${isMe?'me':''} ${turn?'turn':''}"><small>${label}${isMe?' (siz)':''}</small><br><b>${sc}</b><small> / ${g.win}</small><div class="bar2"><i style="width:${Math.min(100,sc/g.win*100)}%"></i></div></div>`}).join('');
- $('gopps').innerHTML=S.players.map((p,i)=>i===me?'':`<div class="opp ${g.turn===i&&!g.result?'turn':''} ${SPK[i]?'speak':''}" data-seat="${i}">${avHtml(p)}
-  <div><b>${esc(p.name)}</b> ${teams&&!sp&&i%2===me%2?'<span class="tag">tərəfdaş</span>':''}<br><div class="backs">${'<i></i>'.repeat(g.counts[i])}</div></div>${voiceBtn(i)}</div>`).join('');
- renderBoard(g);
- const mine=g.turn===me&&!g.result;
+function handU(n){
+ const W=Math.max(200,$('ghand').parentElement.clientWidth-20),rows=n>10?2:1,per=Math.ceil(n/rows);
+ return Math.max(24,Math.min(Math.round(52*ZOOM),Math.floor((W-24-(per-1)*6)/per)));
+}
+function renderGame(){
+ const g=S.game,me=S.seat,sp=!!S.spec,teams=g.n===4,mine=g.turn===me&&!g.result;
+ $('ginfo').innerHTML=`<b>Əl ${g.round}</b> · Bazar ${g.n===4?'—':g.market} · <span class="code4">${S.code}</span>`+(S.watchers?` · ${ICON.eye} ${S.watchers}`:'');
+ $('gplayers').innerHTML=S.players.map((p,i)=>{
+  const isMe=!sp&&i===me,mate=teams&&!sp&&!isMe&&i%2===me%2,turn=!g.result&&g.turn===i,sc=g.score[teams?i%2:i];
+  return `<div class="pl ${isMe?'me':''} ${turn?'turn':''} ${SPK[i]?'speak':''}" data-seat="${i}">${avHtml(p)}
+   <div class="pi"><b>${esc(p.name)}${isMe?'<em>siz</em>':''}${mate?'<em>tərəfdaş</em>':''}</b><span class="ps"><i class="tl"></i>${g.counts[i]} · <strong>${sc}</strong>/${g.win}</span></div>${isMe?'':voiceBtn(i)}</div>`}).join('');
  let st=g.result?'Əl bitdi':sp?`${nm(g.turn)} oynayır…`:mine?'Sizin növbəniz':`${nm(g.turn)} düşünür…`;
  if(mine&&!g.board.length)st=g.must?`${g.must[0]}-${g.must[1]} daşı ilə başlayın`:'İstədiyiniz daşla başlayın';
  if(mine&&sel)st='Daş iki ucda uyğundur — + işarəsinə basın';
  const m=g.msg;if(m&&!g.result){if(m.kind==='pass')st=`${nm(m.seat)} pas keçdi · `+st;if(m.kind==='draw'&&m.seat!==me)st=`${nm(m.seat)} bazara getdi · `+st}
- $('gstatus').innerHTML=st+(sp?' · izləyici rejimi':'');
+ $('gstatus').className='status'+(mine?' mine':'');
+ $('gstatus').innerHTML=st+(sp?' · izləyici':'');
  $('gact').innerHTML=sp?'':(sel&&mine)?`<button class="btn ghost" onclick="sel=null;renderGame()">Ləğv</button>`
-  :(g.n<4&&g.board.length)?`<button class="btn" ${g.can_draw?'':'disabled'} onclick="sock.emit('draw')">${ICON.cart} Bazar (${g.market}${g.n===2?' · cüt':''})</button>`:'';
+  :(g.n<4&&g.board.length)?`<button class="btn" ${g.can_draw?'':'disabled'} onclick="sock.emit('draw')">${ICON.cart} Bazar ${g.market}${g.n===2?' · cüt':''}</button>`:'';
  $('ghand').style.display=sp?'none':'';$('greacts').style.display=sp?'none':'';$('gvoice').style.display=sp?'none':'';
+ $('ghand').style.setProperty('--u',handU(g.hand.length)+'px');
  $('ghand').innerHTML=g.hand.map(([a,b])=>{const ok=g.playable.some(t=>t[0]===a&&t[1]===b),s=sel&&sel[0]===a&&sel[1]===b;
   return tile(a,b,`vert ${ok?'ok':mine?'dim':''} ${s?'sel':''}`)}).join('');
  renderVoice();
+ renderBoard(g);
  if(g.result){
   const key=g.over+'|'+g.result.winner+'|'+g.result.points+'|'+(g.msg?g.msg.id:'');
-  if(key!==lastResultKey){lastResultKey=key;showResult(g);}
- }else{
-  lastResultKey='';
-  $('modal').classList.remove('on');
- }
+  if(key!==lastResultKey){lastResultKey=key;showResult(g)}
+ }else{lastResultKey='';$('modal').classList.remove('on')}
 }
 $('ghand').onclick=e=>{const t=e.target.closest('.tile');if(t)clickTile(+t.dataset.a,+t.dataset.b)};
 
-/* PATCH 5: clickTile — sel sıfırlanır */
 function clickTile(a,b){
  const g=S.game;
  if(S.spec||g.turn!==S.seat||g.result)return;
  ac();
- if(!g.playable.some(t=>t[0]===a&&t[1]===b)){
-  SND.err();
-  if(sel){sel=null;renderGame()}
-  return toast('Bu daşı qoymaq olmur');
- }
+ if(!g.playable.some(t=>t[0]===a&&t[1]===b)){SND.err();if(sel){sel=null;renderGame()}return toast('Bu daşı qoymaq olmur')}
  if(!g.board.length)return sock.emit('play',{tile:[a,b],side:'R'});
  const [L,R]=g.ends,cl=a===L||b===L,cr=a===R||b===R;
  if(cl&&cr&&L!==R){sel=[a,b];renderGame()}
@@ -472,6 +459,13 @@ function showResult(g){const r=g.result,teams=g.n===4,me=S.seat,sp=!!S.spec;
  else if(g.over){const best=g.score.indexOf(Math.max(...g.score));
   h+=`<p style="margin-bottom:12px">Qalib: <b>${teams?nm(best)+' + '+nm(best+2):nm(best)}</b></p><div class="row"><button class="btn" onclick="sock.emit('rematch')">Yenidən</button><button class="btn ghost" onclick="leave()">Çıx</button></div>`}
  else h+=`<button class="btn" onclick="sock.emit('next')">Növbəti əl ▶</button>`;
+ $('mbody').innerHTML=h;$('modal').classList.add('on')}
+
+function showPending(g){const me=S.seat,mineP=g.pending.some(p=>p.seat===me);
+ let h='<div class="big">Daşlar qarışdırılmalıdır</div>';
+ h+=g.pending.map(p=>{const why=p.c>=6?`${p.c} dənə «${p.v}» var`:`${p.c} dənə «${p.v}» var, «${p.v}-${p.v}» qoşası yoxdur`;
+  return `<div class="pdh" style="margin:10px 0"><p><b>${nm(p.seat)}</b>: ${why}</p><div class="row" style="gap:4px;margin-top:6px">${p.hand.map(([a,b])=>tile(a,b,'vert')).join('')}</div></div>`}).join('');
+ h+=mineP?`<button class="btn" onclick="sock.emit('redeal')">Daşları qarışdır</button>`:'<p class="sub" style="margin:8px 0 0">Oyunçunun qarışdırması gözlənilir…</p>';
  $('mbody').innerHTML=h;$('modal').classList.add('on')}
 
 /* ---------- REAKSİYALAR ---------- */
@@ -493,21 +487,15 @@ function playSynth(k){
  else if(k===2){tone(420,.15,'sine',.2);tone(480,.15,'sine',.2,.18)}
  else if(k===3)[523,659,784].forEach(f=>tone(f,.4,'triangle',.18));
  else{tone(900,.05,'square',.1);tone(900,.05,'square',.1,.25)}}
-
-/* PATCH 3: playReact — 2x synth qarşısı */
 function playReact(k){
  if(muted)return;
- let played=false;
- const fail=()=>{if(!played){played=true;playSynth(k)}};
- const a=new Audio('/static/sounds/'+RFILES[k]);
- a.volume=.9;
- a.onerror=fail;
- const pr=a.play();
- if(pr&&pr.catch)pr.catch(fail);
+ let played=false;const fail=()=>{if(!played){played=true;playSynth(k)}};
+ const a=new Audio('/static/sounds/'+RFILES[k]);a.volume=.9;a.onerror=fail;
+ const pr=a.play();if(pr&&pr.catch)pr.catch(fail);
  setTimeout(()=>{try{a.pause()}catch(e){}},4500);
 }
 sock.on('react',({seat,k})=>{playReact(k);if(!S||!S.game)return;
- const own=seat===S.seat,el=own?$('ghand'):document.querySelector(`.opp[data-seat="${seat}"]`);if(!el)return;
+ const own=seat===S.seat,el=own?$('ghand'):document.querySelector(`.pl[data-seat="${seat}"]`);if(!el)return;
  const r=el.getBoundingClientRect(),b=document.createElement('div');b.className='bub';b.innerHTML=face(k);
  const n=document.createElement('span');n.className='nm';n.textContent=own?'Siz':S.players[seat].name;b.appendChild(n);
  b.style.left=(r.left+r.width/2)+'px';b.style.top=(own?r.top:r.top+r.height*.1)+'px';document.body.appendChild(b);setTimeout(()=>b.remove(),2300)});
@@ -546,20 +534,17 @@ function watchSpeak(seat,stream){try{const A=ac(),src=A.createMediaStreamSource(
  const buf=new Uint8Array(an.frequencyBinCount);
  const id=setInterval(()=>{if(!peers[seat]){clearInterval(id);SPK[seat]=false;applySpeak();return}
   an.getByteFrequencyData(buf);let m=0;for(const v of buf)m+=v;const on=!muteOpp[seat]&&m/buf.length>14;if(SPK[seat]!==on){SPK[seat]=on;applySpeak()}},150)}catch(e){}}
-
-/* PATCH 8: applySpeak cache */
 function applySpeak(){
  const key=Object.keys(SPK).sort().map(k=>k+':'+(SPK[k]?1:0)).join('|');
- if(key===lastSpeakKey)return;
- lastSpeakKey=key;
- document.querySelectorAll('.opp').forEach(e=>e.classList.toggle('speak',!!SPK[e.dataset.seat]));
+ if(key===lastSpeakKey)return;lastSpeakKey=key;
+ document.querySelectorAll('.pl').forEach(e=>e.classList.toggle('speak',!!SPK[e.dataset.seat]));
 }
 function voiceBtn(i){if(!VS.has(i))return '';
- return voiceOn?`<button class="spk ${muteOpp[i]?'off':''}" onclick="toggleOpp(${i})" title="Bu oyunçunun səsini aç/bağla">${muteOpp[i]?ICON.volx:ICON.vol}</button>`:`<span class="spk" style="opacity:.6">${ICON.mic}</span>`}
+ return voiceOn?`<button class="spk ${muteOpp[i]?'off':''}" onclick="toggleOpp(${i})" title="Səsi aç/bağla">${muteOpp[i]?ICON.volx:ICON.vol}</button>`:`<span class="spk" style="opacity:.6">${ICON.mic}</span>`}
 function renderVoice(){const n=VS.size;
  $('gvoice').innerHTML=voiceOn
-  ?`<button class="btn ${micMuted?'ghost':''}" onclick="micToggle()">${micMuted?ICON.micx:ICON.mic} ${micMuted?'Mikrofon bağlı':'Mikrofon açıq'}</button><button class="btn ghost" onclick="voiceToggle()">Səsdən çıx</button>`
-  :`<button class="btn" onclick="voiceToggle()">${ICON.headset} Canlı səsə qoşul${n?' ('+n+' nəfər)':''}</button>`}
+  ?`<button class="chip ${micMuted?'off':''}" onclick="micToggle()" title="Mikrofon">${micMuted?ICON.micx:ICON.mic}</button><button class="chip" onclick="voiceToggle()" title="Səsdən çıx">${ICON.headset}<small>çıx</small></button>`
+  :`<button class="chip" onclick="voiceToggle()" title="Canlı səsə qoşul">${ICON.headset}${n?`<small>${n}</small>`:''}</button>`}
 </script>
 </body>
 </html>
