@@ -1,6 +1,6 @@
 # 🁣 domino 101
 
-Real-vaxt çoxoyunçulu domin (2/3/4 nəfər, 101 xal, Google ilə giriş, səs effektləri).
+Real-vaxt çoxoyunçulu domino (2/3/4 nəfər, 101 xal, Google ilə giriş, səs effektləri).
 Stack: Flask + Flask-SocketIO + Vanilla JS. Səslər WebAudio ilə yaradılır (fayl lazım deyil).
 
 ## Lokal işə salma
@@ -11,9 +11,9 @@ python app.py        # http://localhost:5000
 
 ## GitHub
 ```bash
-git init && git add . && git commit -m "xnxx 101"
+git init && git add . && git commit -m "domino 101"
 git branch -M main
-git remote add origin https://github.com/<istifadəçi>/xnxx-101.git
+git remote add origin https://github.com/<istifadəçi>/domino-101.git
 git push -u origin main
 ```
 
