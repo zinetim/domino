@@ -348,29 +348,91 @@ const tile=(a,b,cls)=>`<div class="tile ${cls||''}" data-a="${a}" data-b="${b}">
 
 /* ---------- STOLUN İLAN DÜZÜLÜŞÜ ---------- */
 function layoutBoard(board,origin,cap,gd){
- const P=1.5,dbl={},out=[];
- const clash=(r,x)=>[r-1,r+1].some(q=>(dbl[q]||[]).some(([a,b])=>x<b&&x+1>a));
- const reg=(r,x)=>{(dbl[r]=dbl[r]||[]).push([x,x+1])};
- function step(st,d,dry){
-  let v=d,w=d?1:2;
-  if(v&&clash(st.r,st.dir>0?st.f:st.f-1)){v=false;w=2}
-  if(st.dir>0?st.f+w+1<=cap:st.f-w-1>=0){
-   const x=st.dir>0?st.f:st.f-w,y=st.r*P;
-   if(v&&!dry)reg(st.r,x);
-   st.f+=st.dir*w;
-   return {x,y:v?y-1:y-.5,w:v?1:2,h:v?2:1,v,t:0,dir:st.dir,s:st.s}}
-  const x=st.dir>0?st.f:st.f-1,y=(st.r+st.s/2)*P,s=st.s,dir=st.dir;
-  st.r+=s;st.dir=-dir;
-  return {x,y:y-1,w:1,h:2,v:true,t:1,dir,s}}
- const o=board[origin],ow=o[0]===o[1]?1:2,cx=Math.round((cap-ow)/2);
- out.push({x:cx,y:ow===1?-1:-.5,w:ow,h:ow===1?2:1,v:ow===1,t:0,dir:1,s:1,i:origin,a:o[0],b:o[1]});
- if(ow===1)reg(0,cx);
- const R={f:cx+ow,dir:1,r:0,s:1},L={f:cx,dir:-1,r:0,s:-1};
- for(let i=origin+1;i<board.length;i++){const t=board[i];out.push({...step(R,t[0]===t[1],false),i,a:t[0],b:t[1]})}
- for(let i=origin-1;i>=0;i--){const t=board[i];out.push({...step(L,t[0]===t[1],false),i,a:t[1],b:t[0]})}
- let gl=null,gr=null;
- if(gd===true||gd===false){gr=step({...R},gd,true);if(gr.v&&!gr.t)reg(R.r,gr.x);gl=step({...L},gd,true)}
- return {items:out,gl,gr}}
+ // Klassik domino düzülüşü:
+ // - Adi daş: horizontal (w=2, h=1)
+ // - Qoşa daş: şaquli (w=1, h=2) — HƏMİŞƏ
+ // - Yer bitəndə ilan kimi aşağı/yuxarı dönür
+ const P=3.0; // sətir məsafəsi (daş hündürlüyü 1, boşluq 2)
+ const out=[];
+ const grid={}; // sətir -> [başlanğıc, son] siyahısı
+ const mark=(r,x,w)=>{ if(!grid[r]) grid[r]=[]; grid[r].push([x, x+w]); };
+ const clash=(r,x,w)=>{ if(!grid[r]) return false; return grid[r].some(([a,b])=> x < b && x+w > a); };
+ function step(st,isDouble,dry){
+  if(isDouble){
+   // Qoşa: şaquli, 1 en, 2 hündür. Yuxarı və aşağı sətirlərdə də yer olmalıdır.
+   const col = st.dir>0 ? st.f : st.f-1;
+   const fitsRow = (st.dir>0 ? st.f+1<=cap : st.f-1>=0);
+   const canHere = fitsRow && (clash(st.r,col,1)===false) && (clash(st.r-1,col,1)===false) && (clash(st.r+1,col,1)===false);
+   if(canHere){
+    const x=col, y=st.r*P;
+    if(dry===false){
+     mark(st.r,col,1); mark(st.r-1,col,1); mark(st.r+1,col,1);
+    }
+    st.f += st.dir*1;
+    return {x, y, w:1, h:2, v:true, t:0, dir:st.dir, s:st.s};
+   }
+   // Yer yox — ilan dönüşü: aşağı sətirə keç, istiqaməti çevir
+   const x = col, y = st.r*P, s = st.s, dir = st.dir;
+   st.r += s; st.dir = -dir;
+   const ncol = st.dir>0 ? st.f : st.f-1;
+   if(dry===false){
+    mark(st.r,ncol,1); mark(st.r-1,ncol,1); mark(st.r+1,ncol,1);
+   }
+   return {x, y, w:1, h:2, v:true, t:1, dir, s};
+  }
+  // Adi daş: horizontal, 2 en, 1 hündür
+  const fitsRow = (st.dir>0 ? st.f+2<=cap : st.f-2>=0);
+  const c1 = st.dir>0 ? st.f : st.f-2;
+  const canHere = fitsRow && (clash(st.r,c1,2)===false);
+  if(canHere){
+   const x=c1, y=st.r*P;
+   if(dry===false){ mark(st.r,c1,2); }
+   st.f += st.dir*2;
+   return {x, y, w:2, h:1, v:false, t:0, dir:st.dir, s:st.s};
+  }
+  // Yer yox — ilan dönüşü (şaquli kimi davam edir)
+  const x = st.dir>0 ? st.f : st.f-1, y = st.r*P, s = st.s, dir = st.dir;
+  st.r += s; st.dir = -dir;
+  const ncol = st.dir>0 ? st.f : st.f-1;
+  if(dry===false){
+   mark(st.r,ncol,1); mark(st.r-1,ncol,1); mark(st.r+1,ncol,1);
+  }
+  return {x, y, w:1, h:2, v:true, t:1, dir, s};
+ }
+ // Başlanğıc daş (origin) — mərkəzə yerləşdir
+ const o=board[origin];
+ const isD = o[0]===o[1];
+ const ow = isD?1:2;
+ const cx = Math.round((cap-ow)/2);
+ const cy = isD ? -P : 0;
+ out.push({x:cx, y:cy, w:ow, h:isD?2:1, v:isD, t:0, dir:1, s:1, i:origin, a:o[0], b:o[1]});
+ if(isD){
+  mark(0,cx,1); mark(-1,cx,1); mark(1,cx,1);
+ } else {
+  mark(0,cx,2);
+ }
+ const R={f:cx+ow, dir:1, r:0, s:1};
+ const L={f:cx, dir:-1, r:0, s:-1};
+ // Sağa doğru
+ for(let i=origin+1;i<board.length;i++){
+  const t=board[i];
+  const p=step(R, t[0]===t[1], false);
+  out.push(Object.assign({}, p, {i, a:t[0], b:t[1]}));
+ }
+ // Sola doğru
+ for(let i=origin-1;i>=0;i--){
+  const t=board[i];
+  const p=step(L, t[0]===t[1], false);
+  out.push(Object.assign({}, p, {i, a:t[1], b:t[0]}));
+ }
+ // Ghost (yerləşdirmə üçün + işarəsi)
+ let gl=null, gr=null;
+ if(gd===true || gd===false){
+  gr=step(Object.assign({},R), gd, true);
+  gl=step(Object.assign({},L), gd, true);
+ }
+ return {items:out, gl, gr};
+}
 
 function renderBoard(g){
  const bd=$('gboard'),wrap=bd.parentElement,ge=$('gends');
