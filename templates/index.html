@@ -133,6 +133,26 @@ i.tl{display:inline-block;width:7px;height:12px;border-radius:2px;background:#ff
 .big{font-size:30px;font-weight:900;color:var(--gold);margin:6px 0}
 @media(max-width:420px){.pi b{font-size:12px}.ps{font-size:11px}.pl{padding:5px 6px;gap:5px}.pl .av{width:26px;height:26px}.status{font-size:13px}}
 @media(max-height:620px){.reacts{display:none}}
+
+/* ===== düzülüş animasiyası ===== */
+.cell{transition:left .35s cubic-bezier(.3,1.15,.4,1),top .35s cubic-bezier(.3,1.15,.4,1),width .35s,height .35s}
+.board.notrans .cell{transition:none}
+.tile.land{animation:land .42s cubic-bezier(.2,.9,.3,1) both}
+@keyframes land{0%{transform:translateY(-46px) scale(1.35) rotate(-7deg);opacity:0;box-shadow:0 24px 22px rgba(0,0,0,.35)}
+ 55%{opacity:1}78%{transform:translateY(2px) scale(.97) rotate(1deg)}100%{transform:none}}
+/* ===== bazar ===== */
+.mkt{position:fixed;inset:0;z-index:12;background:rgba(0,0,0,.72);display:none;place-items:center;padding:14px}
+.mkt.on{display:grid}
+.mk-card{width:100%;max-width:560px;background:#12382a;border:1px solid var(--line);border-radius:20px;padding:18px;text-align:center;max-height:92vh;overflow:auto}
+.mk-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:10px}
+.mk-h b{font-size:20px;color:var(--gold)}.mk-h span{font-size:13px;opacity:.85}
+.mk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:12px;margin:14px 4px 14px}
+.back{aspect-ratio:1/2;border:2px solid #d9b45a;border-radius:9px;cursor:pointer;position:relative;padding:0;
+ background:linear-gradient(145deg,#1f6a50,#0f3b2c);box-shadow:0 3px 0 #08241a,0 6px 8px rgba(0,0,0,.4);transition:transform .15s}
+.back:after{content:"";position:absolute;left:50%;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;transform:rotate(45deg);border:2px solid rgba(217,180,90,.85);border-radius:3px}
+.back.on{transform:translateY(-8px);border-color:#fff;box-shadow:0 0 0 3px var(--gold),0 0 16px var(--gold)}
+.back.on:before{content:"✓";position:absolute;top:-11px;right:-11px;width:22px;height:22px;border-radius:50%;background:var(--gold);color:var(--ink);font-weight:900;font-size:13px;display:grid;place-items:center;z-index:2}
+.mk-note{font-size:12px;opacity:.7;margin-bottom:12px}
 </style>
 </head>
 <body>
@@ -196,6 +216,7 @@ i.tl{display:inline-block;width:7px;height:12px;border-radius:2px;background:#ff
  </div>
 </section>
 
+<div class="mkt" id="mkt"></div>
 <div class="modal" id="modal"><div class="card" id="mbody"></div></div>
 
 <script>
@@ -221,7 +242,7 @@ $('gshare').innerHTML=ICON.share;$('gexit').innerHTML=ICON.close;
 
 const sock=io({transports:['websocket','polling']});
 let ME=null,S=null,sel=null,lastMid=0,lastMine=false,popId=0,lastRd=0,PENDING=null;
-let lastResultKey='',lastSpeakKey='';
+let lastResultKey='',lastSpeakKey='',mkOpen=false,mkSel=[],handSeen=new Set();
 let muted=localStorage.mute==='1',ZOOM=+localStorage.zoom||1;
 $('mute').innerHTML=muted?ICON.volx:ICON.vol;
 
@@ -354,7 +375,7 @@ function layoutBoard(board,origin,cap,gd){
 function renderBoard(g){
  const bd=$('gboard'),wrap=bd.parentElement,ge=$('gends');
  ge.innerHTML=g.ends?`Uclar <b>${g.ends[0]}</b><b>${g.ends[1]}</b>`:'';
- if(!g.board.length){bd.style.cssText='';bd.innerHTML='<span style="opacity:.5;font-size:18px">Stol boşdur</span>';return}
+ if(!g.board.length){bd.style.cssText='';bd.innerHTML='<span style="opacity:.5;font-size:18px">Stol boşdur</span>';delete bd.dataset.sig;return}
  const cs=getComputedStyle(wrap),W=Math.floor(wrap.clientWidth-(parseFloat(cs.paddingLeft)||0)-(parseFloat(cs.paddingRight)||0)-6);
  const H=wrap.clientHeight?wrap.clientHeight-(parseFloat(cs.paddingTop)||0)-(parseFloat(cs.paddingBottom)||0)-6:0;
  const mine=g.turn===S.seat&&!g.result,show=!!sel&&mine,pad=4;
@@ -365,22 +386,31 @@ function renderBoard(g){
   const minY=Math.min(...all.map(p=>p.y)),maxY=Math.max(...all.map(p=>p.y+p.h));
   return {cap,u,L,minY,h:(maxY-minY)*u+pad*2}};
  let best=null,last=null;
- for(let cap=7;cap<=24;cap++){const c=calc(cap);last=c;if(c.u*cap>W+1)break;
-  if(!H||c.h<=H){best=c;break}}
+ for(let cap=7;cap<=24;cap++){const c=calc(cap);last=c;if(c.u*cap>W+1)break;if(!H||c.h<=H){best=c;break}}
  if(!best)best=last||calc(7);
  const {cap,u,L,minY,h}=best;
- const cell=(p,html,cls,attr)=>`<div class="cell ${cls||''}" ${attr||''} style="left:${p.x*u}px;top:${(p.y-minY)*u+pad}px;width:${p.w*u}px;height:${p.h*u}px">${html}</div>`;
- const plus='<b class="gplus">+</b>';
- const lastKey=(g.msg&&g.msg.kind==='play')?g.msg.tile.slice().sort().join():null;
- const showPop=lastKey&&g.msg.id!==popId;
- let out=L.items.map(p=>{
-  const isLast=lastKey&&[p.a,p.b].sort().join()===lastKey,isEnd=(p.i===0||p.i===g.board.length-1);
-  const cls=(isLast?'lastp ':'')+(isEnd?'endt ':'')+(isLast&&showPop?'pop':'');
-  const html=p.v?(p.t&&p.s<0?tile(p.b,p.a,'vert '+cls):tile(p.a,p.b,'vert '+cls)):(p.dir>0?tile(p.a,p.b,cls):tile(p.b,p.a,cls));
-  return cell(p,html,'',`data-i="${p.i}"`)}).join('');
- if(show)out+=cell(L.gl,plus,'ghost',`onclick="put('L')"`)+cell(L.gr,plus,'ghost',`onclick="put('R')"`);
+ if(!bd.querySelector('.cell'))bd.innerHTML='';
+ const sig=cap+'|'+u;bd.classList.toggle('notrans',bd.dataset.sig!==sig);bd.dataset.sig=sig;
  bd.style.cssText=`--u:${u}px;width:${cap*u}px;height:${h}px`;
- bd.innerHTML=out;
+ const pos=p=>`left:${p.x*u}px;top:${(p.y-minY)*u+pad}px;width:${p.w*u}px;height:${p.h*u}px`;
+ const lastKey=(g.msg&&g.msg.kind==='play')?g.msg.tile.slice().sort((a,b)=>a-b).join():null;
+ const showLand=lastKey&&g.msg.id!==popId;
+ const old=new Map();bd.querySelectorAll('.cell[data-k]').forEach(c=>old.set(c.dataset.k,c));
+ bd.querySelectorAll('.cell.ghost').forEach(c=>c.remove());
+ const keep=new Set();
+ L.items.forEach(p=>{
+  const kk=[Math.min(p.a,p.b),Math.max(p.a,p.b)].join();keep.add(kk);
+  const isLast=lastKey===kk,isEnd=(p.i===0||p.i===g.board.length-1),cls=(isLast?'lastp ':'')+(isEnd?'endt':'');
+  const html=p.v?(p.t&&p.s<0?tile(p.b,p.a,'vert '+cls):tile(p.a,p.b,'vert '+cls)):(p.dir>0?tile(p.a,p.b,cls):tile(p.b,p.a,cls));
+  let c=old.get(kk);const isNew=!c;
+  if(isNew){c=document.createElement('div');c.dataset.k=kk;bd.appendChild(c)}
+  c.className='cell';c.style.cssText=pos(p);c.dataset.i=p.i;
+  if(c.dataset.h!==html){c.innerHTML=html;c.dataset.h=html}
+  if(isNew&&isLast&&showLand&&c.firstElementChild)c.firstElementChild.classList.add('land');
+ });
+ old.forEach((c,k)=>{if(!keep.has(k))c.remove()});
+ if(show){const plus='<b class="gplus">+</b>';
+  bd.insertAdjacentHTML('beforeend',`<div class="cell ghost" onclick="put('L')" style="${pos(L.gl)}">${plus}</div><div class="cell ghost" onclick="put('R')" style="${pos(L.gr)}">${plus}</div>`)}
  if(g.msg)popId=g.msg.id;
 }
 window.addEventListener('resize',()=>{if(S&&S.game)renderBoard(S.game)});
@@ -395,7 +425,7 @@ applyZoom();
 sock.on('state',s=>{const prev=S;S=s;VS=new Set(s.voice||[]);syncPeers();
  if(!s.game){show('wait');renderWait();return}
  show('game');const g=s.game;
- if(!prev||!prev.game||g.round!==prev.game.round){sel=null;popId=0;lastResultKey=''}
+ if(!prev||!prev.game||g.round!==prev.game.round){sel=null;popId=0;lastResultKey='';handSeen=new Set();closeMarket()}
  if(g.msg&&g.msg.id!==lastMid){lastMid=g.msg.id;const k=g.msg.kind;
   if(k==='play')SND.place();else if(k==='draw')SND.draw();else if(k==='pass')SND.pass();else if(k==='start')SND.deal();
   else if(k==='end'&&!s.spec){const m=g.n===4?g.msg.seat%2===s.seat%2:g.msg.seat===s.seat;setTimeout(()=>m?SND.win():SND.lose(),250)}}
@@ -423,13 +453,16 @@ function renderGame(){
  $('gstatus').className='status'+(mine?' mine':'');
  $('gstatus').innerHTML=st+(sp?' · izləyici':'');
  $('gact').innerHTML=sp?'':(sel&&mine)?`<button class="btn ghost" onclick="sel=null;renderGame()">Ləğv</button>`
-  :(g.n<4&&g.board.length)?`<button class="btn" ${g.can_draw?'':'disabled'} onclick="sock.emit('draw')">${ICON.cart} Bazar ${g.market}${g.n===2?' · cüt':''}</button>`:'';
+  :(g.n<4&&g.board.length)?`<button class="btn" ${g.can_draw?'':'disabled'} onclick="openMarket()">${ICON.cart} Bazar ${g.market}${g.n===2?' · cüt':''}</button>`:'';
  $('ghand').style.display=sp?'none':'';$('greacts').style.display=sp?'none':'';$('gvoice').style.display=sp?'none':'';
  $('ghand').style.setProperty('--u',handU(g.hand.length)+'px');
+ const fresh=handSeen.size&&g.msg&&g.msg.kind==='draw'&&g.msg.seat===me;
  $('ghand').innerHTML=g.hand.map(([a,b])=>{const ok=g.playable.some(t=>t[0]===a&&t[1]===b),s=sel&&sel[0]===a&&sel[1]===b;
-  return tile(a,b,`vert ${ok?'ok':mine?'dim':''} ${s?'sel':''}`)}).join('');
+  return tile(a,b,`vert ${ok?'ok':mine?'dim':''} ${s?'sel':''} ${fresh&&!handSeen.has(a+','+b)?'land':''}`)}).join('');
+ handSeen=new Set(g.hand.map(t=>t.join()));
  renderVoice();
  renderBoard(g);
+ renderMarket();
  if(g.result){
   const key=g.over+'|'+g.result.winner+'|'+g.result.points+'|'+(g.msg?g.msg.id:'');
   if(key!==lastResultKey){lastResultKey=key;showResult(g)}
@@ -468,6 +501,24 @@ function showPending(g){const me=S.seat,mineP=g.pending.some(p=>p.seat===me);
  h+=mineP?`<button class="btn" onclick="sock.emit('redeal')">Daşları qarışdır</button>`:'<p class="sub" style="margin:8px 0 0">Oyunçunun qarışdırması gözlənilir…</p>';
  $('mbody').innerHTML=h;$('modal').classList.add('on')}
 
+
+/* ---------- BAZAR: daşı oyunçu seçir ---------- */
+const mkNeed=()=>S.game.n===2?2:1;
+function openMarket(){if(!S||!S.game||!S.game.can_draw)return;mkOpen=true;mkSel=[];renderMarket()}
+function closeMarket(){mkOpen=false;mkSel=[];const e=$('mkt');if(e)e.classList.remove('on')}
+function mkPick(i){const k=mkNeed(),p=mkSel.indexOf(i);
+ if(p>=0)mkSel.splice(p,1);else{if(mkSel.length>=k)mkSel.shift();mkSel.push(i)}renderMarket()}
+function mkTake(){if(!S||mkSel.length!==mkNeed())return;sock.emit('draw',{picks:mkSel.slice()});closeMarket()}
+function renderMarket(){
+ const el=$('mkt');if(!mkOpen)return el.classList.remove('on');
+ const g=S&&S.game;if(!g||!g.can_draw){closeMarket();return}
+ const k=mkNeed(),n=g.market;mkSel=mkSel.filter(i=>i<n);
+ el.innerHTML=`<div class="mk-card"><div class="mk-h"><b>Bazar</b><span>${n} daş · ${k===2?'2 daş (cüt)':'1 daş'} seçin (${mkSel.length}/${k})</span></div>
+  <div class="mk-grid">${Array.from({length:n},(_,i)=>`<button class="back ${mkSel.includes(i)?'on':''}" onclick="mkPick(${i})" aria-label="Daş ${i+1}"></button>`).join('')}</div>
+  <p class="mk-note">${g.n===2?'Bazarda son 2 daş qalmalıdır':'Bazarda son 1 daş qalmalıdır'}</p>
+  <div class="row"><button class="btn" ${mkSel.length===k?'':'disabled'} onclick="mkTake()">Götür</button><button class="btn ghost" onclick="closeMarket()">Ləğv</button></div></div>`;
+ el.classList.add('on')}
+
 /* ---------- REAKSİYALAR ---------- */
 const RL=['Gülüş','Kədər','Düşünürəm','Əla oyun','Tez ol'],RFILES=['laugh.wav','sad.wav','think.mp3','clap.wav','hurry.mp3'];
 function face(k){
@@ -501,29 +552,57 @@ sock.on('react',({seat,k})=>{playReact(k);if(!S||!S.game)return;
  b.style.left=(r.left+r.width/2)+'px';b.style.top=(own?r.top:r.top+r.height*.1)+'px';document.body.appendChild(b);setTimeout(()=>b.remove(),2300)});
 
 /* ---------- CANLI SƏS (WebRTC) ---------- */
-const ICE={iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},
- {urls:['turn:openrelay.metered.ca:80','turn:openrelay.metered.ca:443','turn:openrelay.metered.ca:443?transport=tcp'],username:'openrelayproject',credential:'openrelayproject'}]};
+let ICE={iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}]},iceAt=0,audioBlocked=false;
+const RETRY={};
 let localStream=null,voiceOn=false,micMuted=false,VS=new Set(),peers={},muteOpp={},SPK={};
 async function voiceToggle(){
  if(voiceOn)return stopVoice();
  try{localStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}})}
  catch(e){return toast('Mikrofona icazə verilməyib')}
- ac();voiceOn=true;micMuted=false;sock.emit('voice',{on:true});if(S&&S.game)renderGame()}
+ await loadIce();
+ ac();voiceOn=true;micMuted=false;sock.emit('voice',{on:true});if(S&&S.game)renderGame()
+}
 function stopVoice(silent){closeAll();if(localStream){localStream.getTracks().forEach(t=>t.stop());localStream=null}
  const was=voiceOn;voiceOn=false;micMuted=false;if(was&&!silent)sock.emit('voice',{on:false});if(S&&S.game)renderGame()}
 function micToggle(){micMuted=!micMuted;if(localStream)localStream.getAudioTracks().forEach(t=>t.enabled=!micMuted);renderVoice()}
 function toggleOpp(i){muteOpp[i]=!muteOpp[i];if(peers[i]&&peers[i].audio)peers[i].audio.muted=muteOpp[i];renderGame()}
-function closePeer(seat){const p=peers[seat];if(!p)return;try{p.pc.close()}catch(e){}if(p.audio)p.audio.srcObject=null;delete peers[seat];SPK[seat]=false;applySpeak()}
+function closePeer(seat){const p=peers[seat];if(!p)return;clearTimeout(p.t);try{p.pc.close()}catch(e){}if(p.audio){p.audio.srcObject=null;p.audio.remove()}delete peers[seat];SPK[seat]=false;applySpeak()}
 function closeAll(){Object.keys(peers).forEach(closePeer)}
 function syncPeers(){Object.keys(peers).forEach(k=>{if(!VS.has(+k))closePeer(k)})}
-function mkPeer(seat,init){const pc=new RTCPeerConnection(ICE),p=peers[seat]={pc,audio:null,q:[]};
+function mkPeer(seat,init){
+ const pc=new RTCPeerConnection(ICE),p=peers[seat]={pc,audio:null,q:[],t:null};
  localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));
  pc.onicecandidate=e=>{if(e.candidate)sock.emit('rtc',{to:seat,data:{c:e.candidate}})};
- pc.ontrack=e=>{if(!p.audio){p.audio=new Audio();p.audio.autoplay=true}p.audio.srcObject=e.streams[0];p.audio.muted=!!muteOpp[seat];{const pr=p.audio.play();if(pr&&pr.catch)pr.catch(()=>{})}watchSpeak(seat,e.streams[0])};
+ pc.ontrack=e=>{
+  if(!p.audio){p.audio=new Audio();p.audio.autoplay=true;p.audio.setAttribute('playsinline','');p.audio.style.display='none';document.body.appendChild(p.audio)}
+  const st=e.streams&&e.streams[0]?e.streams[0]:new MediaStream([e.track]);
+  p.audio.srcObject=st;p.audio.muted=!!muteOpp[seat];
+  const pr=p.audio.play();if(pr&&pr.catch)pr.catch(()=>{audioBlocked=true;toast('Səsi aktiv etmək üçün ekrana toxunun',1)});
+  watchSpeak(seat,st)};
+ pc.onconnectionstatechange=()=>{const st=pc.connectionState;
+  if(st==='connected'){clearTimeout(p.t);RETRY[seat]=0}
+  else if(st==='failed'||st==='disconnected'){clearTimeout(p.t);p.t=setTimeout(()=>retryPeer(seat,p),st==='failed'?300:4000)}};
+ p.t=setTimeout(()=>{if(pc.connectionState!=='connected')retryPeer(seat,p)},15000);
  if(init)pc.createOffer().then(o=>pc.setLocalDescription(o)).then(()=>sock.emit('rtc',{to:seat,data:{d:pc.localDescription}}));
- return p}
+ return p
+}
+function retryPeer(seat,p){
+ if(!voiceOn||peers[seat]!==p||p.pc.connectionState==='connected')return;
+ RETRY[seat]=(RETRY[seat]||0)+1;closePeer(seat);
+ if(RETRY[seat]>4){toast('Səs bağlantısı qurulmadı — şəbəkə üçün TURN serveri lazımdır');return}
+ if(S&&S.seat>seat)mkPeer(seat,true);else sock.emit('rtc',{to:seat,data:{retry:1}});
+}
+async function loadIce(){
+ if(Date.now()-iceAt<240000)return;
+ try{const r=await Promise.race([fetch('/ice').then(r=>r.json()),new Promise((_,j)=>setTimeout(j,4000))]);
+  if(r&&r.iceServers&&r.iceServers.length){ICE={iceServers:r.iceServers};iceAt=Date.now()}}catch(e){}
+}
+function unlockAudio(){if(!audioBlocked)return;ac();Object.values(peers).forEach(p=>{if(p.audio){const pr=p.audio.play();if(pr&&pr.catch)pr.catch(()=>{})}});audioBlocked=false}
+['pointerdown','touchend','keydown'].forEach(ev=>document.addEventListener(ev,unlockAudio,{passive:true}));
+loadIce();
 sock.on('voicepeers',list=>{if(!voiceOn)return;list.forEach(s=>{closePeer(s);mkPeer(s,true)})});
 sock.on('rtc',async({from,data})=>{if(!voiceOn||!data)return;
+ if(data.retry){if(S&&S.seat>from){closePeer(from);mkPeer(from,true)}return}
  try{if(data.d&&data.d.type==='offer'){closePeer(from);mkPeer(from,false)}
   const p=peers[from];if(!p)return;
   if(data.d){await p.pc.setRemoteDescription(data.d);while(p.q.length)await p.pc.addIceCandidate(p.q.shift());
