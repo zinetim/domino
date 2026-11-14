@@ -67,8 +67,8 @@ input:focus{border-color:var(--gold)}
 i.tl{display:inline-block;width:7px;height:12px;border-radius:2px;background:#fffdf4;border:1px solid #777;margin-right:3px;vertical-align:-2px}
 .spk{border:0;background:rgba(0,0,0,.35);color:#fff;border-radius:50%;width:24px;height:24px;display:grid;place-items:center;cursor:pointer;flex:none;margin-left:auto;font-size:12px}
 .spk.off{color:#ff8a80}
-.stage{position:relative;flex:1 1 0;min-height:170px;display:flex;overflow:hidden}
-.boardwrap{flex:1;min-width:0;display:flex;overflow:auto;padding:8px;border-radius:18px;border:3px solid #6b4a2b;
+.stage{position:relative;flex:1 1 0;min-height:170px;display:flex}
+.boardwrap{flex:1;min-width:0;display:flex;overflow:auto;padding:12px 8px;border-radius:18px;border:3px solid #6b4a2b;
  background:radial-gradient(ellipse at 50% 40%,#1c7d58 0,#0f5238 75%,#0a3d2a 100%);box-shadow:inset 0 0 40px rgba(0,0,0,.45),0 4px 14px rgba(0,0,0,.4)}
 .board{position:relative;display:block;flex:none;margin:auto}
 .endsinfo{position:absolute;left:10px;top:8px;z-index:3;display:flex;align-items:center;gap:6px;font-size:11px;background:rgba(0,0,0,.45);padding:3px 8px;border-radius:999px;pointer-events:none}
@@ -77,6 +77,7 @@ i.tl{display:inline-block;width:7px;height:12px;border-radius:2px;background:#ff
 .cell.ghost{display:grid;place-items:center;cursor:pointer;border:2px dashed var(--gold);border-radius:calc(var(--u)*.2);
  background:rgba(245,196,81,.2);animation:blink 1s infinite alternate}
 .gplus{color:var(--gold);font-size:calc(var(--u)*.9);line-height:1}
+
 .tile{display:inline-flex;position:relative;flex:none;color:#111;border-radius:calc(var(--u)*.2);outline:1.5px solid #222;outline-offset:-1px;
  background:linear-gradient(160deg,#fffdf4 0,#f6efd8 60%,#e9dfbf 100%);box-shadow:0 2px 0 #b9ae88,0 4px 6px rgba(0,0,0,.4)}
 .tile.vert{flex-direction:column}
@@ -333,19 +334,20 @@ const half=n=>`<div class="half n${n}">${[...Array(9)].map((_,i)=>`<i class="${P
 const tile=(a,b,cls)=>`<div class="tile ${cls||''}" data-a="${a}" data-b="${b}">${half(a)}<span class="bar"></span>${half(b)}</div>`;
 
 /* ---------- STOLUN İLAN DÜZÜLÜŞÜ (YENİ) ---------- */
-function layoutBoard(board, origin, cap){
- const PX = 2.05;
- const PY = 1.10;
+function layoutBoard(board, origin, cap, gd){
+ // Dünya standartı: adi daş 2×1, qoşa 1×2, sətirlər arası boşluq 0.5
+ const P = 1.5; // sətir məsafəsi (vahid)
  const out = [];
- const grid = {};
+ const grid = {}; // grid[r] = [[start, end], ...]
  const mark = (r, x, w) => { if(!grid[r]) grid[r]=[]; grid[r].push([x, x+w]); };
  const clash = (r, x, w) => {
    if(!grid[r]) return false;
    return grid[r].some(([a,b]) => x < b - 0.01 && x+w > a + 0.01);
  };
 
- function step(st, isDouble){
+ function step(st, isDouble, dry){
    if(isDouble){
+     // Qoşa: HƏMİŞƏ şaquli (1 en, 2 hündür). Yuxarı/aşağı sətirdə yer olmalı.
      const col = st.dir>0 ? st.f : st.f-1;
      const fitsRow = (st.dir>0 ? st.f+1 <= cap : st.f-1 >= 0);
      const canHere = fitsRow
@@ -353,36 +355,45 @@ function layoutBoard(board, origin, cap){
        && !clash(st.r-1, col, 1)
        && !clash(st.r+1, col, 1);
      if(canHere){
-       const x = col, y = st.r - 1;
-       mark(st.r, col, 1);
-       mark(st.r-1, col, 1);
-       mark(st.r+1, col, 1);
+       const x = col, y = (st.r - 1) * P + P/2;
+       if(!dry){
+         mark(st.r, col, 1);
+         mark(st.r-1, col, 1);
+         mark(st.r+1, col, 1);
+       }
        st.f += st.dir * 1;
        return {x, y, w:1, h:2, v:true, t:0, dir:st.dir, s:st.s};
      }
-     const x = col, y = st.r - 1, s = st.s, dir = st.dir;
+     // İlan dönüşü
+     const x = col, y = (st.r - 1) * P + P/2, s = st.s, dir = st.dir;
      st.r += s; st.dir = -dir;
      const ncol = st.dir>0 ? st.f : st.f-1;
-     mark(st.r, ncol, 1);
-     mark(st.r-1, ncol, 1);
-     mark(st.r+1, ncol, 1);
+     if(!dry){
+       mark(st.r, ncol, 1);
+       mark(st.r-1, ncol, 1);
+       mark(st.r+1, ncol, 1);
+     }
      return {x, y, w:1, h:2, v:true, t:1, dir, s};
    }
+   // Adi daş: horizontal (2 en, 1 hündür)
    const fitsRow = (st.dir>0 ? st.f+2 <= cap : st.f-2 >= 0);
    const c1 = st.dir>0 ? st.f : st.f-2;
    const canHere = fitsRow && !clash(st.r, c1, 2);
    if(canHere){
-     const x = c1, y = st.r;
-     mark(st.r, c1, 2);
+     const x = c1, y = st.r * P + P/2 - 1;
+     if(!dry){ mark(st.r, c1, 2); }
      st.f += st.dir * 2;
      return {x, y, w:2, h:1, v:false, t:0, dir:st.dir, s:st.s};
    }
-   const x = st.dir>0 ? st.f : st.f-1, y = st.r - 1, s = st.s, dir = st.dir;
+   // İlan dönüşü (şaquli kimi)
+   const x = st.dir>0 ? st.f : st.f-1, y = (st.r - 1) * P + P/2, s = st.s, dir = st.dir;
    st.r += s; st.dir = -dir;
    const ncol = st.dir>0 ? st.f : st.f-1;
-   mark(st.r, ncol, 1);
-   mark(st.r-1, ncol, 1);
-   mark(st.r+1, ncol, 1);
+   if(!dry){
+     mark(st.r, ncol, 1);
+     mark(st.r-1, ncol, 1);
+     mark(st.r+1, ncol, 1);
+   }
    return {x, y, w:1, h:2, v:true, t:1, dir, s};
  }
 
@@ -391,113 +402,78 @@ function layoutBoard(board, origin, cap){
  const ow = isD ? 1 : 2;
  const cx = Math.round((cap - ow) / 2);
  out.push({
-   x: cx, y: isD ? -1 : 0, w: ow, h: isD ? 2 : 1,
+   x: cx, y: 0, w: ow, h: isD ? 2 : 1,
    v: isD, t: 0, dir: 1, s: 1, i: origin, a: o[0], b: o[1]
  });
- if(isD){ mark(0,cx,1); mark(-1,cx,1); mark(1,cx,1); }
- else { mark(0,cx,2); }
+ if(isD){
+   mark(0, cx, 1); mark(-1, cx, 1); mark(1, cx, 1);
+ } else {
+   mark(0, cx, 2);
+ }
 
  const R = {f: cx + ow, dir: 1, r: 0, s: 1};
  const L = {f: cx, dir: -1, r: 0, s: -1};
  for(let i = origin+1; i < board.length; i++){
    const t = board[i];
-   const p = step(R, t[0]===t[1]);
+   const p = step(R, t[0]===t[1], false);
    out.push({...p, i, a:t[0], b:t[1]});
  }
  for(let i = origin-1; i >= 0; i--){
    const t = board[i];
-   const p = step(L, t[0]===t[1]);
+   const p = step(L, t[0]===t[1], false);
    out.push({...p, i, a:t[1], b:t[0]});
  }
- return {items: out, PX, PY};
+ let gl=null, gr=null;
+ if(gd===true || gd===false){
+   gr = step({...R}, gd, true);
+   gl = step({...L}, gd, true);
+ }
+ return {items: out, gl, gr, P};
 }
 
 function renderBoard(g){
- const bd = $('gboard'), wrap = bd.parentElement, ge = $('gends');
- ge.innerHTML = g.ends ? `Uclar <b>${g.ends[0]}</b><b>${g.ends[1]}</b>` : '';
-
- if(!g.board.length){
-   bd.style.cssText = '';
-   bd.innerHTML = '<span style="opacity:.5;font-size:18px">Stol boşdur</span>';
-   delete bd.dataset.sig;
-   return;
- }
-
- const cs = getComputedStyle(wrap);
- const W = wrap.clientWidth  - (parseFloat(cs.paddingLeft)||0) - (parseFloat(cs.paddingRight)||0);
- const H = wrap.clientHeight - (parseFloat(cs.paddingTop)||0)  - (parseFloat(cs.paddingBottom)||0);
-
- const mine = g.turn === S.seat && !g.result;
- const o = Math.min(g.origin || 0, g.board.length - 1);
-
- let best = null;
- for(let cap = 6; cap <= 60; cap++){
-   const L = layoutBoard(g.board, o, cap);
-   const minX = Math.min(...L.items.map(p=>p.x));
-   const maxX = Math.max(...L.items.map(p=>p.x + p.w));
-   const minY = Math.min(...L.items.map(p=>p.y));
-   const maxY = Math.max(...L.items.map(p=>p.y + p.h));
-   const needW = maxX - minX;
-   const needH = maxY - minY;
-   const uW = W / needW;
-   const uH = H / needH;
-   const u  = Math.floor(Math.min(uW, uH) * 0.95);
-   if(u >= 14){
-     best = {L, cap, u, minX, minY, needW, needH};
-     break;
-   }
- }
- if(!best){
-   const cap = Math.min(60, Math.max(6, Math.ceil(g.board.length / 2) + 4));
-   const L = layoutBoard(g.board, o, cap);
-   const minX = Math.min(...L.items.map(p=>p.x));
-   const maxX = Math.max(...L.items.map(p=>p.x + p.w));
-   const minY = Math.min(...L.items.map(p=>p.y));
-   const maxY = Math.max(...L.items.map(p=>p.y + p.h));
-   const needW = maxX - minX, needH = maxY - minY;
-   const u = Math.max(8, Math.floor(Math.min(W/needW, H/needH) * 0.95));
-   best = {L, cap, u, minX, minY, needW, needH};
- }
-
- const {L, u, minX, minY, needW, needH} = best;
- const GAP = Math.max(1, Math.round(u * 0.04));
- const boardW = needW * u + (needW - 1) * GAP;
- const boardH = needH * u + (needH - 1) * GAP;
-
- if(!bd.querySelector('.cell')) bd.innerHTML = '';
- bd.style.cssText = `--u:${u}px;width:${boardW}px;height:${boardH}px;position:relative;margin:auto;`;
-
- const old = new Map();
- bd.querySelectorAll('.cell[data-k]').forEach(c => old.set(c.dataset.k, c));
- bd.querySelectorAll('.cell.ghost').forEach(c => c.remove());
- const keep = new Set();
-
- L.items.forEach(p => {
-   const kk = [Math.min(p.a,p.b), Math.max(p.a,p.b)].join();
-   keep.add(kk);
-   const isEnd = (p.i === 0 || p.i === g.board.length - 1);
-   const cls = isEnd ? 'endt' : '';
-   const html = p.v
-     ? (p.t && p.s < 0 ? tile(p.b, p.a, 'vert ' + cls) : tile(p.a, p.b, 'vert ' + cls))
-     : (p.dir > 0 ? tile(p.a, p.b, cls) : tile(p.b, p.a, cls));
-   let c = old.get(kk);
-   const isNew = !c;
-   if(isNew){ c = document.createElement('div'); c.dataset.k = kk; bd.appendChild(c); }
-   const left = (p.x - minX) * (u + GAP);
-   const top  = (p.y - minY) * (u + GAP);
-   const w    = p.w * u + (p.w - 1) * GAP;
-   const h    = p.h * u + (p.h - 1) * GAP;
-   c.className = 'cell';
-   c.style.cssText = `left:${left}px;top:${top}px;width:${w}px;height:${h}px;`;
-   c.dataset.i = p.i;
-   if(c.dataset.h !== html){ c.innerHTML = html; c.dataset.h = html; }
-   if(isNew && c.firstElementChild){
-     c.firstElementChild.classList.add('land');
-     setTimeout(() => { if(c.firstElementChild) c.firstElementChild.classList.remove('land'); }, 500);
-   }
+ const bd=$('gboard'),wrap=bd.parentElement,ge=$('gends');
+ ge.innerHTML=g.ends?`Uclar <b>${g.ends[0]}</b><b>${g.ends[1]}</b>`:'';
+ if(!g.board.length){bd.style.cssText='';bd.innerHTML='<span style="opacity:.5;font-size:18px">Stol boşdur</span>';delete bd.dataset.sig;return}
+ const cs=getComputedStyle(wrap),W=Math.floor(wrap.clientWidth-(parseFloat(cs.paddingLeft)||0)-(parseFloat(cs.paddingRight)||0)-6);
+ const H=wrap.clientHeight?wrap.clientHeight-(parseFloat(cs.paddingTop)||0)-(parseFloat(cs.paddingBottom)||0)-6:0;
+ const mine=g.turn===S.seat&&!g.result,show=!!sel&&mine,pad=4;
+ const o=Math.min(g.origin||0,g.board.length-1),gd=show?sel[0]===sel[1]:null;
+ const maxU=Math.round(58*ZOOM),minU=12;
+ const calc=cap=>{
+   const u=Math.max(minU,Math.min(maxU,Math.floor(W/cap)));
+   const L=layoutBoard(g.board,o,cap,gd);
+   const all=L.items.concat(L.gl?[L.gl]:[],L.gr?[L.gr]:[]);
+   const minY=Math.min(...all.map(p=>p.y)),maxY=Math.max(...all.map(p=>p.y+p.h));
+   return {cap,u,L,minY,h:(maxY-minY)*u+pad*2};
+ };
+ let best=null,last=null;
+ for(let cap=7;cap<=32;cap++){const c=calc(cap);last=c;if(c.u*cap>W+1)break;if(!H||c.h<=H){best=c;break}}
+ if(!best)best=last||calc(7);
+ const {cap,u,L,minY,h}=best;
+ if(!bd.querySelector('.cell'))bd.innerHTML='';
+ const sig=cap+'|'+u;bd.classList.toggle('notrans',bd.dataset.sig!==sig);bd.dataset.sig=sig;
+ bd.style.cssText=`--u:${u}px;width:${cap*u}px;height:${h}px`;
+ const pos=p=>`left:${p.x*u}px;top:${(p.y-minY)*u+pad}px;width:${p.w*u}px;height:${p.h*u}px`;
+ const lastKey=(g.msg&&g.msg.kind==='play')?g.msg.tile.slice().sort((a,b)=>a-b).join():null;
+ const showLand=lastKey&&g.msg.id!==popId;
+ const old=new Map();bd.querySelectorAll('.cell[data-k]').forEach(c=>old.set(c.dataset.k,c));
+ bd.querySelectorAll('.cell.ghost').forEach(c=>c.remove());
+ const keep=new Set();
+ L.items.forEach(p=>{
+  const kk=[Math.min(p.a,p.b),Math.max(p.a,p.b)].join();keep.add(kk);
+  const isLast=lastKey===kk,isEnd=(p.i===0||p.i===g.board.length-1),cls=(isLast?'lastp ':'')+(isEnd?'endt':'');
+  const html=p.v?(p.t&&p.s<0?tile(p.b,p.a,'vert '+cls):tile(p.a,p.b,'vert '+cls)):(p.dir>0?tile(p.a,p.b,cls):tile(p.b,p.a,cls));
+  let c=old.get(kk);const isNew=!c;
+  if(isNew){c=document.createElement('div');c.dataset.k=kk;bd.appendChild(c)}
+  c.className='cell';c.style.cssText=pos(p);c.dataset.i=p.i;
+  if(c.dataset.h!==html){c.innerHTML=html;c.dataset.h=html}
+  if(isNew&&isLast&&showLand&&c.firstElementChild)c.firstElementChild.classList.add('land');
  });
- old.forEach((c, k) => { if(!keep.has(k)) c.remove(); });
- if(g.msg) popId = g.msg.id;
+ old.forEach((c,k)=>{if(!keep.has(k))c.remove()});
+ if(show){const plus='<b class="gplus">+</b>';
+  bd.insertAdjacentHTML('beforeend',`<div class="cell ghost" onclick="put('L')" style="${pos(L.gl)}">${plus}</div><div class="cell ghost" onclick="put('R')" style="${pos(L.gr)}">${plus}</div>`)}
+ if(g.msg)popId=g.msg.id;
 }
 window.addEventListener('resize',()=>{if(S&&S.game)renderBoard(S.game)});
 if(typeof ResizeObserver!=='undefined'){let q=0;new ResizeObserver(()=>{if(q||!S||!S.game)return;q=1;requestAnimationFrame(()=>{q=0;if(S&&S.game)renderBoard(S.game)})}).observe(document.querySelector('.boardwrap'))}
